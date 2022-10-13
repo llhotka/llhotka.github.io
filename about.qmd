@@ -1,5 +1,5 @@
 ---
-title: "About this blog"
+title: "About"
 image: ukulele.jpg
 about:
   template: jolla
@@ -14,3 +14,5 @@ about:
 ---
 
 Welcome to my blog! An open-ended list of topics that I possibly might write about includes home automation and energy management, photovoltaics, programming, personal productivity, data crunching, technical and scientific publishing, music, golf, …
+
+I decided to use [Quarto](https://quarto.org) as the underlying framework, primarily because I plan to use technical contents such as statistics, graphs, tables or computations quite frequently in my blog posts, and Quarto's plain-text approach (enriched Markdown with embedded code chunks) fits my preferences almost perfectly. But it also has to be said that together with [GitHub Pages](https://pages.github.com) Quarto makes preparation and publishing of a blog site very easy and enjoyable.
