@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss  xmlns:atom="http://www.w3.org/2005/Atom" 
+      xmlns:media="http://search.yahoo.com/mrss/" 
+      xmlns:content="http://purl.org/rss/1.0/modules/content/" 
+      xmlns:dc="http://purl.org/dc/elements/1.1/" 
+      version="2.0">
+<channel>
+<title>Ladislav Lhotka</title>
+<link>https://llhotka.github.io/index.html</link>
+<atom:link href="https://llhotka.github.io/index.xml" rel="self" type="application/rss+xml"/>
+<description>This is Ladislav Lhotka's personal blog.</description>
+<generator>quarto-1.0.38</generator>
+<lastBuildDate>Tue, 04 Oct 2022 22:00:00 GMT</lastBuildDate>
+<item>
+  <title>Home Energy Management – Starting Line</title>
+  <dc:creator>Ladislav Lhotka</dc:creator>
+  <link>https://llhotka.github.io/posts/energy-starting-line/energy-starting-line.html</link>
+  <description><![CDATA[ 
+
+
+
+
+<p>My main motivation for starting this blog site in the first place was to document the transition of our household from traditional energy consumption patterns to a more clever energy management.</p>
+<p>Indeed, our home is kind of traditional two-storey family house (at least according to Czech standards) built in 2004, located near <a href="https://en.wikipedia.org/wiki/%C4%8Cesk%C3%A9_Bud%C4%9Bjovice">České Budějovice</a> in the altitude of about 420&nbsp;m above the sea level. We live in it together with my wife.</p>
+<p>We currently use natural gas for heating and preparing hot water, for cooking and everything else we use electricity. In both bathrooms we have towel radiators that are connected to the central heating system but also have an electric heating element that can be switched on independently.</p>
+<p>In 2019, our 15 years old gas-fired boiler broke down and had to be replaced. At that time, with no energy crisis yet in sight, it looked like a no-brainer to buy a gas condensing boiler as a replacement, and that’s what we did. Now, with this relatively new boiler, I am somewhat reluctant to get rid of it in favour of a heat pump or just an electric boiler for hot water preparation.</p>
+<p>Anyway, our energy consumption in the last five years is shown in Table&nbsp;1. The condensing boiler apparently caused about 10% decrease in natural gas use. Electricity consumption rose in 2020 and 2021, which clearly has to do with the covid pandemic, as we both were working mostly from home office.</p>
+<div id="tbl-consumption" class="anchored">
+<table class="table">
+<caption>Table 1: Yearly energy consumption 2017–2021</caption>
+<thead>
+<tr class="header">
+<th>Year</th>
+<th style="text-align: right;">Electricity [MWh]</th>
+<th style="text-align: right;">Gas [MWh]</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>2017</td>
+<td style="text-align: right;">2.497</td>
+<td style="text-align: right;">25.857</td>
+</tr>
+<tr class="even">
+<td>2018</td>
+<td style="text-align: right;">2.365</td>
+<td style="text-align: right;">23.738</td>
+</tr>
+<tr class="odd">
+<td>2019</td>
+<td style="text-align: right;">2.371</td>
+<td style="text-align: right;">23.563</td>
+</tr>
+<tr class="even">
+<td>2020</td>
+<td style="text-align: right;">2.636</td>
+<td style="text-align: right;">20.838</td>
+</tr>
+<tr class="odd">
+<td>2021</td>
+<td style="text-align: right;">2.914</td>
+<td style="text-align: right;">22.996</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>For quite a long time, I’ve been a strong supporter of renewable energy production and electromobility. The ongoing energy crisis just gave us extra motivation to turn our household and our life style into a more energy-conserving and self-sufficient mode.</p>
+<p>Considering all the circumstances that I briefly described above, we decided to proceed as follows:</p>
+<ol type="1">
+<li>install a photovoltaic power plant with battery storage</li>
+<li>buy an electric vehicle and a wallbox for charging it at home</li>
+<li>change heating and hot water preparation system either
+<ul>
+<li>by using electricity for hot water and leaving the existing condensing boiler only for heating, or</li>
+<li>by replacing the gas-fired boiler completely with a heat pump system.</li>
+</ul></li>
+</ol>
+<p>I will try to document this journey in this blog.</p>
+
+
+
+ ]]></description>
+  <category>energy</category>
+  <guid>https://llhotka.github.io/posts/energy-starting-line/energy-starting-line.html</guid>
+  <pubDate>Tue, 04 Oct 2022 22:00:00 GMT</pubDate>
+</item>
+</channel>
+</rss>

@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>https://llhotka.github.io/posts/energy-starting-line/energy-starting-line.html</loc>
+    <lastmod>2022-10-14T11:37:44.894Z</lastmod>
+  </url>
+  <url>
     <loc>https://llhotka.github.io/about.html</loc>
-    <lastmod>2022-08-23T11:29:30.405Z</lastmod>
+    <lastmod>2022-10-14T11:37:45.067Z</lastmod>
+  </url>
+  <url>
+    <loc>https://llhotka.github.io/archive.html</loc>
+    <lastmod>2022-10-14T11:37:45.257Z</lastmod>
   </url>
   <url>
     <loc>https://llhotka.github.io/index.html</loc>
-    <lastmod>2022-08-23T11:29:30.578Z</lastmod>
+    <lastmod>2022-10-14T11:37:45.464Z</lastmod>
   </url>
 </urlset>
