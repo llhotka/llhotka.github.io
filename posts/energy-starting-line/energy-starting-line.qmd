@@ -1,0 +1,40 @@
+---
+title: "Home Energy Management – Starting Line"
+date: "2022-10-05"
+description: >
+  Our original way of using energy resources.
+categories:
+  - energy
+---
+
+My main motivation for starting this blog site in the first place was to document the transition of our household from traditional energy consumption patterns to a more clever energy management.
+
+Indeed, our home is kind of traditional two-storey family house (at least according to Czech standards) built in 2004, located near [České Budějovice](https://en.wikipedia.org/wiki/%C4%8Cesk%C3%A9_Bud%C4%9Bjovice) in the altitude of about 420 m above the sea level. We live in it together with my wife.
+
+We currently use natural gas for heating and preparing hot water, for cooking and everything else we use electricity. In both bathrooms we have towel radiators that are connected to the central heating system but also have an electric heating element that can be switched on independently.
+
+In 2019, our 15 years old gas-fired boiler broke down and had to be replaced. At that time, with no energy crisis yet in sight, it looked like a no-brainer to buy a gas condensing boiler as a replacement, and that's what we did. Now, with this relatively new boiler, I am somewhat reluctant to get rid of it in favour of a heat pump or just an electric boiler for hot water preparation.
+
+Anyway, our energy consumption in the last five years is shown in @tbl-consumption. The condensing boiler apparently caused about 10% decrease in natural gas use. Electricity consumption rose in 2020 and 2021, which clearly has to do with the covid pandemic, as we both were working mostly from home office.
+
+| Year | Electricity [MWh] | Gas [MWh] |
+|------|------------------:|----------:|
+| 2017 |             2.497 |    25.857 |
+| 2018 |             2.365 |    23.738 |
+| 2019 |             2.371 |    23.563 |
+| 2020 |             2.636 |    20.838 |
+| 2021 |             2.914 |    22.996 |
+
+: Yearly energy consumption 2017--2021 {#tbl-consumption}
+
+For quite a long time, I've been a strong supporter of renewable energy production and electromobility. The ongoing energy crisis just gave us extra motivation to turn our household and our life style into a more energy-conserving and self-sufficient mode.
+
+Considering all the circumstances that I briefly described above, we decided to proceed as follows:
+
+1. install a photovoltaic power plant with battery storage
+2. buy an electric vehicle and a wallbox for charging it at home
+3. change heating and hot water preparation system either
+    * by using electricity for hot water and leaving the existing condensing boiler only for heating, or
+    * by replacing the gas-fired boiler completely with a heat pump system.
+
+I will try to document this journey in this blog.
