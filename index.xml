@@ -64,18 +64,13 @@
 </tbody>
 </table>
 </div>
-<p>For quite a long time, I’ve been a strong supporter of renewable energy production and electromobility. The ongoing energy crisis just gave us extra motivation to turn our household and our life style into a more energy-conserving and self-sufficient mode.</p>
-<p>Considering all the circumstances that I briefly described above, we decided to proceed as follows:</p>
-<ol type="1">
-<li>install a photovoltaic power plant with battery storage</li>
-<li>buy an electric vehicle and a wallbox for charging it at home</li>
-<li>change heating and hot water preparation system either
+<p>For quite a long time, I’ve been a strong supporter of renewable energy production and electromobility. The ongoing energy crisis just gave us extra incentives to turn our household and our life style into a more energy-conserving and self-sufficient mode.</p>
+<p>In this blog, I will try to describe our journey towards that goal. I have several motivations to do so:</p>
 <ul>
-<li>by using electricity for hot water and leaving the existing condensing boiler only for heating, or</li>
-<li>by replacing the gas-fired boiler completely with a heat pump system.</li>
-</ul></li>
-</ol>
-<p>I will try to document this journey in this blog.</p>
+<li>create kind of project documentation that might came handy later</li>
+<li>writing about a technical solution may help identify weak or overly complex points of the solution itself – if I am not able to describe it in a comprehensible manner, then it has to be redone or at least refactored</li>
+<li>other people facing similar challenges may learn from our experience and avoid repeating our mistakes.</li>
+</ul>
 
 
 
