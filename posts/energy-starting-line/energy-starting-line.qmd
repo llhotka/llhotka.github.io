@@ -27,14 +27,10 @@ Anyway, our energy consumption in the last five years is shown in @tbl-consumpti
 
 : Yearly energy consumption 2017--2021 {#tbl-consumption}
 
-For quite a long time, I've been a strong supporter of renewable energy production and electromobility. The ongoing energy crisis just gave us extra motivation to turn our household and our life style into a more energy-conserving and self-sufficient mode.
+For quite a long time, I've been a strong supporter of renewable energy production and electromobility. The ongoing energy crisis just gave us extra incentives to turn our household and our life style into a more energy-conserving and self-sufficient mode.
 
-Considering all the circumstances that I briefly described above, we decided to proceed as follows:
+In this blog, I will try to describe our journey towards that goal. I have several motivations to do so:
 
-1. install a photovoltaic power plant with battery storage
-2. buy an electric vehicle and a wallbox for charging it at home
-3. change heating and hot water preparation system either
-    * by using electricity for hot water and leaving the existing condensing boiler only for heating, or
-    * by replacing the gas-fired boiler completely with a heat pump system.
-
-I will try to document this journey in this blog.
+* create kind of project documentation that might came handy later
+* writing about a technical solution may help identify weak or overly complex points of the solution itself – if I am not able to describe it in a comprehensible manner, then it has to be redone or at least refactored
+* other people facing similar challenges may learn from our experience and avoid repeating our mistakes.
