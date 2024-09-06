@@ -1,1 +1,1 @@
-Sitemap: https://llhotka.github.io/sitemap.xml
+Sitemap: https://blog.lhotka.name/sitemap.xml

@@ -5,29 +5,42 @@
       xmlns:dc="http://purl.org/dc/elements/1.1/" 
       version="2.0">
 <channel>
-<title>Ladislav Lhotka</title>
-<link>https://llhotka.github.io/index.html</link>
-<atom:link href="https://llhotka.github.io/index.xml" rel="self" type="application/rss+xml"/>
-<description>This is Ladislav Lhotka's personal blog.</description>
-<generator>quarto-1.0.38</generator>
+<title>Blog Matrix</title>
+<link>https://blog.lhotka.name/</link>
+<atom:link href="https://blog.lhotka.name/index.xml" rel="self" type="application/rss+xml"/>
+<description>This is Ladislav Lhotka&#39;s personal blog.</description>
+<generator>quarto-1.5.57</generator>
 <lastBuildDate>Tue, 04 Oct 2022 22:00:00 GMT</lastBuildDate>
 <item>
   <title>Home Energy Management – Starting Line</title>
   <dc:creator>Ladislav Lhotka</dc:creator>
-  <link>https://llhotka.github.io/posts/energy-starting-line/energy-starting-line.html</link>
+  <link>https://blog.lhotka.name/posts/energy-starting-line/energy-starting-line.html</link>
   <description><![CDATA[ 
 
 
 
 
+
 <p>My main motivation for starting this blog site in the first place was to document the transition of our household from traditional energy consumption patterns to a more clever energy management.</p>
-<p>Indeed, our home is kind of traditional two-storey family house (at least according to Czech standards) built in 2004, located near <a href="https://en.wikipedia.org/wiki/%C4%8Cesk%C3%A9_Bud%C4%9Bjovice">České Budějovice</a> in the altitude of about 420&nbsp;m above the sea level. We live in it together with my wife.</p>
-<p>We currently use natural gas for heating and preparing hot water, for cooking and everything else we use electricity. In both bathrooms we have towel radiators that are connected to the central heating system but also have an electric heating element that can be switched on independently.</p>
-<p>In 2019, our 15 years old gas-fired boiler broke down and had to be replaced. At that time, with no energy crisis yet in sight, it looked like a no-brainer to buy a gas condensing boiler as a replacement, and that’s what we did. Now, with this relatively new boiler, I am somewhat reluctant to get rid of it in favour of a heat pump or just an electric boiler for hot water preparation.</p>
+<p>I’ve had several motivations to do so:</p>
+<ul>
+<li>create kind of project documentation that might come handy later</li>
+<li>writing about a technical solution may help identify weak or overly complex points of the solution itself – if I am not able to describe it in a comprehensible manner, then it has to be redone or at least refactored</li>
+<li>other people facing similar challenges may learn from our experience and avoid repeating our mistakes, and also provide feedback.</li>
+</ul>
+<p>Indeed, our home is kind of traditional two-storey family house (at least according to Czech standards) built in 2004, located near <a href="https://en.wikipedia.org/wiki/%C4%8Cesk%C3%A9_Bud%C4%9Bjovice">České Budějovice</a> in the altitude of 406&nbsp;m above the sea level. We live in it together with my wife.</p>
+<p>We currently use natural gas for heating and preparing hot water, for cooking and everything else we use electricity. In each of our two bathrooms we have a towel radiator that is connected to a central heating system, but also has a separate electric heating element that can be switched on independently.</p>
+<p>In 2019, our 15 years old gas-fired boiler broke down and had to be promptly replaced. At that time, with no energy crisis yet in sight, it looked like a no-brainer to buy a gas condensing boiler as a replacement, and that’s what we did.</p>
+<section id="energy-bills" class="level1">
+<h1>Energy bills</h1>
 <p>Anyway, our energy consumption in the last five years is shown in Table&nbsp;1. The condensing boiler apparently caused about 10% decrease in natural gas use. Electricity consumption rose in 2020 and 2021, which clearly has to do with the covid pandemic, as we both were working mostly from home office.</p>
-<div id="tbl-consumption" class="anchored">
-<table class="table">
-<caption>Table 1: Yearly energy consumption 2017–2021</caption>
+<div id="tbl-consumption" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-consumption-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Yearly energy consumption 2017–2021
+</figcaption>
+<div aria-describedby="tbl-consumption-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="caption-top table">
 <thead>
 <tr class="header">
 <th>Year</th>
@@ -64,19 +77,30 @@
 </tbody>
 </table>
 </div>
-<p>For quite a long time, I’ve been a strong supporter of renewable energy production and electromobility. The ongoing energy crisis just gave us extra incentives to turn our household and our life style into a more energy-conserving and self-sufficient mode.</p>
-<p>In this blog, I will try to describe our journey towards that goal. I have several motivations to do so:</p>
+</figure>
+</div>
+<p>In any case, with our current electricity consumption the investment in a photovoltaic power plant (that was going to happen in late 2022, see TODO) would take quite long to return, even with current high energy prices. Unless, of course, we change the ways how we use electricity.</p>
+</section>
+<section id="immediate-actions" class="level1">
+<h1>Immediate actions</h1>
+<p>We have made a few significant steps already in 2022, i.e.&nbsp;before the PV system was installed. This section contains only a brief overview, some of these steps certainly deserve a closer look in future blog posts.</p>
+<p>First of all, I bought a couple of smart plugs capable of measuring instantaneous power and energy output, with two aims:</p>
 <ul>
-<li>create kind of project documentation that might came handy later</li>
-<li>writing about a technical solution may help identify weak or overly complex points of the solution itself – if I am not able to describe it in a comprehensible manner, then it has to be redone or at least refactored</li>
-<li>other people facing similar challenges may learn from our experience and avoid repeating our mistakes.</li>
+<li><p>evaluate actual power consumption of home appliances</p></li>
+<li><p>enable remote control of selected appliances, especially heaters, with the prospect of including them in automation scenarios.</p></li>
 </ul>
+<p>Regarding automation, I must admit that I am not a big fan of so-called smart homes. I think we can still operate lights and make our cups of tea manually. On the other hand, with electricity flowing down from our roof it makes a lot of sense to plan a bit ahead and turn on appliances, in particular the greedy ones, at appropriate times in order to minimize consumption from the grid. This is where a limited amount of automation comes handy.</p>
+<p>In June</p>
+</section>
+<section id="what-next" class="level1">
+<h1>What next?</h1>
 
 
+</section>
 
  ]]></description>
   <category>energy</category>
-  <guid>https://llhotka.github.io/posts/energy-starting-line/energy-starting-line.html</guid>
+  <guid>https://blog.lhotka.name/posts/energy-starting-line/energy-starting-line.html</guid>
   <pubDate>Tue, 04 Oct 2022 22:00:00 GMT</pubDate>
 </item>
 </channel>
