@@ -7,6 +7,10 @@ website:
   site-url: https://llhotka.github.io
   description: "This is Ladislav Lhotka's personal blog."
   navbar:
+    background: "#A7D5E8"
+    logo: "logo.svg"
+    collapse-below: lg
+
     right:
       - about.qmd
       - archive.qmd
