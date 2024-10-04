@@ -8,7 +8,7 @@ website:
   description: "This is Ladislav Lhotka's personal blog."
   navbar:
     background: "#A7D5E8"
-    logo: "logo.svg"
+    logo: "images/logo.svg"
     collapse-below: lg
 
     right:

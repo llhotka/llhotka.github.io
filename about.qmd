@@ -1,6 +1,6 @@
 ---
 title: "About"
-image: ukulele.jpg
+image: images/ukulele.jpg
 about:
   template: jolla
   links:

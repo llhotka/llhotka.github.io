@@ -1,5 +1,5 @@
 ---
-title: "llhotka.github.io"
+title: "Ladislav Lhotka's Blog"
 listing:
   contents: posts
   sort: "date desc"
