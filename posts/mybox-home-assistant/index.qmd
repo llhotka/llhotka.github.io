@@ -1,0 +1,21 @@
+---
+title: "MyBox and Home Assistant"
+date: "2024-10-30"
+description: >-
+  This post describes how to integrate MyBox wallbox to Home Assistant
+  via MQTT.
+categories:
+  - electromobility
+  - Home Assistant
+image: "mybox-ha.png"
+---
+
+[MyBox](https://mybox.eco/en/produkty-kategorie/nabijeci-stanice/) is
+a line of smart charging stations. This post describes the steps
+necessary for integrating their Plus model into [Home
+Assistant](https://www.home-assistant.io) so that the wallbox can be
+monitored and controlled from this popular smart home platform.
+
+# MyBox Plus
+
+TBD.
