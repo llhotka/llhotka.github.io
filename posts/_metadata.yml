@@ -8,7 +8,6 @@ freeze: true
 title-block-banner: true
 
 author: "Ladislav Lhotka"
-page-layout: article
 comments:
   utterances:
     repo: llhotka/blog-comments

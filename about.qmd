@@ -1,10 +1,13 @@
 ---
-title: "About"
+title: "Ladislav Lhotka"
 image: images/ukulele.jpg
 about:
-  template: jolla
+  template: trestles
   links:
-    - icon: twitter
+    - icon: envelope
+      text: Email
+      href: mailto:ladislav@lhotka.name
+    - icon: twitter-x
       text: Twitter
       href: https://twitter.com/LadislavLhotka
     - icon: github
@@ -13,16 +16,25 @@ about:
 
 ---
 
-Welcome to my blog! An open-ended list of topics that I possibly might
-write about includes home automation and energy management,
-photovoltaics, programming, personal productivity, data crunching,
+Welcome to my blog! I am a retired ICT researcher, developer and
+manager. In 1990s I participated in early developments of the Czech
+academic Internet (CESNET project), and started the campus network of
+the University of South Bohemia and Biology Centre CAS in České
+Budějovice.
+
+Since 2006 I've been actively involved in
+[NETCONF](https://datatracker.ietf.org/wg/netconf/about),
+[NETMOD](https://datatracker.ietf.org/wg/netmod/about) and
+[DNSOP](https://datatracker.ietf.org/wg/dnsop/about) working groups of
+the Internet Engineering Task Force (IETF). I authored or co-authored
+[8 RFC
+standards](https://datatracker.ietf.org/doc/search?name=&sort=&rfcs=on&by=author&author=Lhotka).
+
+An open-ended list of topics that I might possibly
+write about includes home automation and energy management, electromobility,
+photovoltaics, programming, personal productivity tools, data crunching,
 technical and scientific publishing, music, golf, …
 
-I decided to use [Quarto](https://quarto.org) as the underlying
-framework, primarily because I plan to use technical contents such as
-statistics, graphs, tables or computations quite frequently in my blog
-posts, and Quarto's plain-text approach (enriched Markdown with
-embedded code chunks) fits my preferences almost perfectly. But it
-also has to be said that together with [GitHub
-Pages](https://pages.github.com) Quarto makes preparation and
-publishing of a blog site very easy and enjoyable.
+This blog site has been built using the [Quarto](https://quarto.org)
+framework and [GitHub Pages](https://pages.github.com).
+

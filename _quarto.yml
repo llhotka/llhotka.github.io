@@ -3,20 +3,34 @@ project:
 
 website:
   title: "Blog Matrix"
-  favicon: logo.svg
-  site-url: https://llhotka.github.io
+  favicon: images/logo.png
+  site-url: "https://blog.lhotka.name"
   description: "This is Ladislav Lhotka's personal blog."
+  page-footer:
+    background: "#F6F5F3"
+    left: >-
+      Made with [![](https://quarto.org/quarto.png){fig-alt="Quarto" width=65px}](https://quarto.org)
+    center: >-
+      © 2024
+      • licensed under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1)
+      ![](https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1){height=15px margin-left=4px}
+      ![](https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1){height=15px margin-left=4px}
+      ![](https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1){height=15px margin-left=4px}
+    right:
+      - icon: code-slash
+        href: "https://github.com/llhotka/llhotka.github.io"
   navbar:
     background: "#A7D5E8"
     logo: "images/logo.svg"
     collapse-below: lg
 
     right:
-      - about.qmd
+      - text: About
+        href: about.qmd
       - archive.qmd
       - icon: github
         href: https://github.com/llhotka
-      - icon: twitter
+      - icon: twitter-x
         href: https://twitter.com/LadislavLhotka
 format:
   html:
