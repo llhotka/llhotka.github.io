@@ -11,11 +11,272 @@ image: "mybox-ha.png"
 ---
 
 [MyBox](https://mybox.eco/en/produkty-kategorie/nabijeci-stanice/) is
-a line of smart charging stations. This post describes the steps
-necessary for integrating their Plus model into [Home
+a line of sleek and smart BEV charging stations suitable for both home and
+public deployment. This post describes the steps necessary for
+integrating their Plus model (AC) into [Home
 Assistant](https://www.home-assistant.io) so that the wallbox can be
 monitored and controlled from this popular smart home platform.
 
+I use the MQTT messaging protocol for getting data from and sending
+commands to the wallbox. Modbus TCP could be another option in the
+future but, while listed in the
+[datasheet](https://mybox.eco/wp-content/uploads/2023/11/mybox_plus_datasheet_2str.pdf),
+it is currently reserved only for internal use. According to the vendor, it
+should be made available to customers “soon”.
+
 # MyBox Plus
 
-TBD.
+Why did I choose the MyBox platform in the first place?  Well,
+although it is more expensive than some of the competing products, it
+offers a lot of useful functionality now, hopefully with more to come
+later through software upgrades. One feature that I'd certainly love
+to try is V2H (vehicle-to-home) or V2G (vehicle-to-grid) as per [ISO
+15118](https://www.switch-ev.com/blog/what-is-iso-15118).
+
+The low-end [MyBox Home](https://mybox.eco/produkt/mybox-home) model
+would most likely suffice for our home BEV charging purposes. After some
+hesitation, I decided to go for the
+[Plus](https://mybox.eco/produkt/mybox-plus) model, mainly because of
+its modularity. Should any hardware component need to be replaced or upgraded,
+it will be much easier and cheaper to do with a modular design.
+
+::: {#fig-our-mybox layout-ncol=2}
+
+![Installation in our garage](mybox-plus.jpg){#fig-mybox-garage}
+
+![Home screen of the app](mybox-app.png){#fig-mybox-app width=60%}
+
+MyBox Plus wallbox and mobile application 
+
+:::
+
+On the other hand, since the wallbox was going to be installed in a
+locked garage, we didn't need the optional RFID card reader. For the
+same reason I chose the tethered variant (with a fixed Type 2 cable),
+as it is much more convenient to simply take the cable off the holder
+and plug it into the car. 
+
+Finally, I didn't order the [AC
+Sensor](https://mybox.eco/produkt/mybox-ac-sensor-modul-dynamickeho-rizeni-vykonu-nabijeci-stanice)
+that can be used for adjusting wallbox charging power dynamically
+according to the current consumption of the household. My plan has
+been to implement such a control mechanism in Home Assistant, if it's
+necessary at all.
+
+# Preliminaries
+
+In order to use MQTT in Home Assistant, [MQTT
+integration](https://www.home-assistant.io/integrations/mqtt/) needs
+to be added, and an *MQTT broker* also has to be set up. Actually, the
+latter is one of the extra functions implemented in the MyBox software, I
+haven't tried it though. A natural choice for Home Assistant users is
+to use the [Mosquitto
+broker](https://github.com/home-assistant/addons/blob/master/mosquitto/DOCS.md)
+add-on. Its installation and configuration is very easy, one just has
+to create a special Home Assistant account & password for use with the
+broker.
+
+Another tool that I found quite handy is [MQTT
+Explorer](http://mqtt-explorer.com). It is an open-source MQTT client
+that makes it very easy (apart from other functions) to inspect MQTT
+data hierarchy. Some examples will be given below. MQTT Explorer is
+available for Windows, MacOS and Linux. 
+
+# Enabling MQTT in MyBox
+
+The local MQTT function isn't turned on by default. To configure it, I
+first needed to obtain access to the [MyBox cloud
+portal](https://cloud.mybox.pro) the configuration of the wallbox can
+be viewed and changed. I received the necessary credentials directly
+from the technician who did the wallbox installation.
+
+After logging into the portal and opening the device configuration,
+I scrolled down to the *local_mqtt* section, enabled it and filled in the
+parameters of my MQTT broker. The configured web form looks like this:
+
+![MyBox portal](mqtt-local.jpg){#fig-mqtt-config}
+
+The two items that are masked out are the user name and password
+chosen for the Mosquitto broker user in Home Assistant. The
+`local-mqtt-host` parameter is the IP address of my Home Assistant
+server with Mosquitto broker. It is also necessary to configure the
+MQTT root topic. I chose `charger`, but anything reasonable can be used
+instead.
+
+In my case, the Home Assistant server can be accessed only from the
+local network, so I don't need encryption and certificates.
+
+# Verifying the communication
+
+From the configuration page of the MQTT integration in Home Assistant,
+I was able to view and change wallbox parameters via
+MQTT. For example, in the box **Listen to a topic** I could specify the
+topic
+```
+charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/max-charge-current
+```
+and after pressing the **START LISTENING** button, the value of
+maximum charge current immediately poped up as seen in @fig-listen.
+
+::: {.callout-important}
+The leftmost level in a topic (`charger`) is the root topic configured
+in the cloud portal (see above). Immediately following is the device
+ID of my wallbox that can also be found in the portal.
+:::
+
+::: {#fig-mqtt-config layout-ncol=2}
+
+![Listening to an MQTT topic](ha-listen.jpg){#fig-listen}
+
+![Publishing an MQTT packet](ha-publish.jpg){#fig-publish}
+
+Testing MQTT in Home Assistant
+:::
+
+::: {.callout-note}
+It is also possible to dump all (a few dozen) parameters at once by
+using a wildcard topic with the hash symbol `#`, for example
+`charger/#`.
+:::
+
+Similarly, I was able to change a writable parameter by sending a new
+value with `/set` appended to the corresponding topic name. An example
+for the `max-charge-current` parameter is in @fig-publish. In the
+MyBox mobile app (@fig-mybox-app) we can immediately verify that
+indeed the maximum charge current is now 6.
+
+# Configuring Home Assistant sensors and scripts
+
+With MQTT properly working, I used MQTT Explorer for connecting to the
+Mosquitto broker running on my Home Assistant server, and started
+browsing the MQTT tree of the wallbox. I then selected topics from the
+following two subtrees (both with the `charger/e5qb-ekgg-48wz-o07w/`
+prefix) for defining Home Assistant sensors and scripts, namely
+
+* `ac-module-1-ac-module` – status and charging-related settings of
+  the wallbox, see @fig-ac-module.
+
+* `ac-module-1-ev-meter` – data about power output and energy
+  consumption, see @fig-ev-meter.
+
+::: {#fig-explorer layout-ncol=2}
+
+![`ac-module-1-ac-module` subtree](ac-module-1-ac-module.png){#fig-ac-module}
+
+![`ac-module-1-ev-meter` subtree](ac-module-1-ev-meter.png){#fig-ev-meter}
+
+Topics in MQTT Explorer
+:::
+
+Home Assistant sensors and binary sensors that monitor specific MQTT
+topics are defined in the `mqtt` section of Home Assistant
+configuration. I have them in a separate file `mqtt.yaml`, which is
+included in the main configuration file:
+
+```{.yaml filename="configuration.yaml"}
+mqtt: !include mqtt.yaml
+```
+
+Sensors are configured in the `sensor` subsection. For instance, the
+sensor for maximum charge current is defined as follows:
+
+```{.yaml filename="mqtt.yaml"}
+sensor:
+  - name: "MyBox max charge current"
+    icon: "mdi:current-ac"
+    unique_id: "e7446234-e557-4135-9117-3b9b6db3c0df"
+    unit_of_measurement: "A"
+    state_class: measurement
+    state_topic: >-
+      charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/max-charge-current
+```
+
+Similarly, binary sensors appear in the `binary_sensor` subsection,
+for example
+
+```{.yaml filename="mqtt.yaml"}
+binary_sensor:
+  - name: "MyBox cable locked"
+    icon: "mdi:ev-plug-type2"
+    unique_id: "f010644a-8e6f-4811-94b1-7a75fa05f7d2"
+    state_topic: >-
+      charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/cable-locked
+    payload_on: "true"
+    payload_off: "false"
+```
+
+Scripts can be used for implementing various actions such as
+changing a parameter value or pausing/resuming/stopping a charging
+session. This script changes the value of maximum charge
+current:
+
+```{.yaml filename="scripts.yaml"}
+mybox_set_max_charge_current:
+  alias: "Set the maximum charge current"
+  description: >-
+    Set the maximum charge current for MyBox.
+  icon: "mdi:current-ac"
+  fields:
+    value:
+      name: "Max charge current value"
+      selector:
+        number:
+          min: 6
+          max: 16
+          step: 1
+          unit_of_measurement: "A"
+          mode: slider
+  sequence:
+    - action: mqtt.publish
+      data:
+        topic: >-
+          charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/max-charge-current/set
+        payload_template: "{{ value }}"
+```
+
+And the following script pauses the charging session:
+
+```{.yaml filename="mqtt.yaml"}
+mybox_pause_charging:
+  alias: "Pause charging"
+  description: >-
+    Pause EV charging from MyBox.
+  mode: single
+  sequence:
+    - action: mqtt.publish
+      data:
+        topic: >-
+          charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/pause-charging/set
+```
+
+Complete contents of configuration files that I currently use for
+MyBox can be downloaded from
+[GitHub](https://github.com/llhotka/mybox-ha-mqtt).
+
+# Conclusions
+
+MyBox Plus is a nice piece of hardware with rich software
+functionality. I've been using it regularly for overnight charging at
+11 kW (the wallbox supports up to 22 kW) with no issues whatsoever.
+
+My only complaint is that I cannot enforce single-phase operation: if
+a car has has a three-phase onboard charger, then MyBox will feed it
+over three phases. This doesn't look like a limitation, but it prevents
+me from using MyBox in the mode of using only excess energy from our
+photovoltaic system – its minimum charging power is 4.1 kW (3 × 6 A),
+which is very close to the peak PV production at optimal conditions,
+so there is essentially no space for power regulation. Therefore, I
+ended up using my older [EcoVolter](https://ecovolter.com/en) portable
+wallbox for excess-energy charging because it can be switched to
+single-phase operation a thus go with the charging power down to
+1.4 kW (1 × 6 A). I plan to write another blog post about integrating
+this wallbox to Home Assistant and using it in the excess-energy mode.
+
+But back to MyBox: integrating it to Home Assistant via MQTT and YAML
+configuration turned out to be pretty easy and perfectly sufficient
+for our purposes. It might make sense to write a full-fledged HA
+integration in Python, but I guess I am not in the right position to do
+it, as I don't have some of the interesting hardware modules (RFID
+card reader, AC sensor) and don't use any security-related
+functions. Potential developers of such an integration would also
+appreciate more extensive technical documentation. 
