@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Ladislav Lhotka">
-<meta name="dcterms.date" content="2024-10-30">
+<meta name="dcterms.date" content="2024-10-29">
 <meta name="description" content="This post describes how to integrate MyBox wallbox to Home Assistant via MQTT.">
 
 <title>MyBox and Home Assistant – Blog Matrix</title>
@@ -202,7 +202,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">October 30, 2024</p>
+      <p class="date">October 29, 2024</p>
     </div>
   </div>
   
@@ -265,7 +265,7 @@ Figure&nbsp;1: MyBox Plus wallbox and mobile application
 </section>
 <section id="enabling-mqtt-in-mybox" class="level1">
 <h1>Enabling MQTT in MyBox</h1>
-<p>The local MQTT function isn’t turned on by default. To configure it, I first needed to obtain access to the <a href="https://cloud.mybox.pro">MyBox cloud portal</a> the configuration of the wallbox can be viewed and changed. I received the necessary credentials directly from the technician who did the wallbox installation.</p>
+<p>The local MQTT function isn’t turned on by default. To configure it, I first needed to obtain access to the <a href="https://cloud.mybox.pro">MyBox cloud portal</a>, where the configuration of the wallbox can be viewed and changed. I received the necessary credentials directly from the technician who did the wallbox installation.</p>
 <p>After logging into the portal and opening the device configuration, I scrolled down to the <em>local_mqtt</em> section, enabled it and filled in the parameters of my MQTT broker. The configured web form looks like this:</p>
 <div id="fig-mqtt-config" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">

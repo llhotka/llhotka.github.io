@@ -10,7 +10,7 @@
 <atom:link href="https://blog.lhotka.name/index.xml" rel="self" type="application/rss+xml"/>
 <description>This is Ladislav Lhotka&#39;s personal blog.</description>
 <generator>quarto-1.5.57</generator>
-<lastBuildDate>Tue, 29 Oct 2024 23:00:00 GMT</lastBuildDate>
+<lastBuildDate>Mon, 28 Oct 2024 23:00:00 GMT</lastBuildDate>
 <item>
   <title>MyBox and Home Assistant</title>
   <dc:creator>Ladislav Lhotka</dc:creator>
@@ -71,7 +71,7 @@ Figure&nbsp;1: MyBox Plus wallbox and mobile application
 </section>
 <section id="enabling-mqtt-in-mybox" class="level1">
 <h1>Enabling MQTT in MyBox</h1>
-<p>The local MQTT function isn’t turned on by default. To configure it, I first needed to obtain access to the <a href="https://cloud.mybox.pro">MyBox cloud portal</a> the configuration of the wallbox can be viewed and changed. I received the necessary credentials directly from the technician who did the wallbox installation.</p>
+<p>The local MQTT function isn’t turned on by default. To configure it, I first needed to obtain access to the <a href="https://cloud.mybox.pro">MyBox cloud portal</a>, where the configuration of the wallbox can be viewed and changed. I received the necessary credentials directly from the technician who did the wallbox installation.</p>
 <p>After logging into the portal and opening the device configuration, I scrolled down to the <em>local_mqtt</em> section, enabled it and filled in the parameters of my MQTT broker. The configured web form looks like this:</p>
 <div id="fig-mqtt-config" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -677,7 +677,7 @@ font-style: inherit;">&gt;-</span></span>
   <category>electromobility</category>
   <category>Home Assistant</category>
   <guid>https://blog.lhotka.name/posts/mybox-home-assistant/</guid>
-  <pubDate>Tue, 29 Oct 2024 23:00:00 GMT</pubDate>
+  <pubDate>Mon, 28 Oct 2024 23:00:00 GMT</pubDate>
   <media:content url="https://blog.lhotka.name/posts/mybox-home-assistant/mybox-ha.png" medium="image" type="image/png" height="157" width="144"/>
 </item>
 </channel>
