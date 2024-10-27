@@ -10,98 +10,675 @@
 <atom:link href="https://blog.lhotka.name/index.xml" rel="self" type="application/rss+xml"/>
 <description>This is Ladislav Lhotka&#39;s personal blog.</description>
 <generator>quarto-1.5.57</generator>
-<lastBuildDate>Tue, 04 Oct 2022 22:00:00 GMT</lastBuildDate>
+<lastBuildDate>Tue, 29 Oct 2024 23:00:00 GMT</lastBuildDate>
 <item>
-  <title>Home Energy Management – Starting Line</title>
+  <title>MyBox and Home Assistant</title>
   <dc:creator>Ladislav Lhotka</dc:creator>
-  <link>https://blog.lhotka.name/posts/energy-starting-line/energy-starting-line.html</link>
+  <link>https://blog.lhotka.name/posts/mybox-home-assistant/</link>
   <description><![CDATA[ 
 
 
 
 
-
-<p>My main motivation for starting this blog site in the first place was to document the transition of our household from traditional energy consumption patterns to a more clever energy management.</p>
-<p>I’ve had several motivations to do so:</p>
-<ul>
-<li>create kind of project documentation that might come handy later</li>
-<li>writing about a technical solution may help identify weak or overly complex points of the solution itself – if I am not able to describe it in a comprehensible manner, then it has to be redone or at least refactored</li>
-<li>other people facing similar challenges may learn from our experience and avoid repeating our mistakes, and also provide feedback.</li>
-</ul>
-<p>Indeed, our home is kind of traditional two-storey family house (at least according to Czech standards) built in 2004, located near <a href="https://en.wikipedia.org/wiki/%C4%8Cesk%C3%A9_Bud%C4%9Bjovice">České Budějovice</a> in the altitude of 406&nbsp;m above the sea level. We live in it together with my wife.</p>
-<p>We currently use natural gas for heating and preparing hot water, for cooking and everything else we use electricity. In each of our two bathrooms we have a towel radiator that is connected to a central heating system, but also has a separate electric heating element that can be switched on independently.</p>
-<p>In 2019, our 15 years old gas-fired boiler broke down and had to be promptly replaced. At that time, with no energy crisis yet in sight, it looked like a no-brainer to buy a gas condensing boiler as a replacement, and that’s what we did.</p>
-<section id="energy-bills" class="level1">
-<h1>Energy bills</h1>
-<p>Anyway, our energy consumption in the last five years is shown in Table&nbsp;1. The condensing boiler apparently caused about 10% decrease in natural gas use. Electricity consumption rose in 2020 and 2021, which clearly has to do with the covid pandemic, as we both were working mostly from home office.</p>
-<div id="tbl-consumption" class="quarto-float quarto-figure quarto-figure-center anchored">
-<figure class="quarto-float quarto-float-tbl figure">
-<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-consumption-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-Table&nbsp;1: Yearly energy consumption 2017–2021
-</figcaption>
-<div aria-describedby="tbl-consumption-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
-<table class="caption-top table">
-<thead>
-<tr class="header">
-<th>Year</th>
-<th style="text-align: right;">Electricity [MWh]</th>
-<th style="text-align: right;">Gas [MWh]</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>2017</td>
-<td style="text-align: right;">2.497</td>
-<td style="text-align: right;">25.857</td>
-</tr>
-<tr class="even">
-<td>2018</td>
-<td style="text-align: right;">2.365</td>
-<td style="text-align: right;">23.738</td>
-</tr>
-<tr class="odd">
-<td>2019</td>
-<td style="text-align: right;">2.371</td>
-<td style="text-align: right;">23.563</td>
-</tr>
-<tr class="even">
-<td>2020</td>
-<td style="text-align: right;">2.636</td>
-<td style="text-align: right;">20.838</td>
-</tr>
-<tr class="odd">
-<td>2021</td>
-<td style="text-align: right;">2.914</td>
-<td style="text-align: right;">22.996</td>
-</tr>
-</tbody>
-</table>
+<p><a href="https://mybox.eco/en/produkty-kategorie/nabijeci-stanice/">MyBox</a> is a line of sleek and smart BEV charging stations suitable for both home and public deployment. This post describes the steps necessary for integrating their Plus model (AC) into <a href="https://www.home-assistant.io">Home Assistant</a> so that the wallbox can be monitored and controlled from this popular smart home platform.</p>
+<p>I use the MQTT messaging protocol for getting data from and sending commands to the wallbox. Modbus TCP could be another option in the future but, while listed in the <a href="https://mybox.eco/wp-content/uploads/2023/11/mybox_plus_datasheet_2str.pdf">datasheet</a>, it is currently reserved only for internal use. According to the vendor, it should be made available to customers “soon”.</p>
+<section id="mybox-plus" class="level1">
+<h1>MyBox Plus</h1>
+<p>Why did I choose the MyBox platform in the first place? Well, although it is more expensive than some of the competing products, it offers a lot of useful functionality now, hopefully with more to come later through software upgrades. One feature that I’d certainly love to try is V2H (vehicle-to-home) or V2G (vehicle-to-grid) as per <a href="https://www.switch-ev.com/blog/what-is-iso-15118">ISO 15118</a>.</p>
+<p>The low-end <a href="https://mybox.eco/produkt/mybox-home">MyBox Home</a> model would most likely suffice for our home BEV charging purposes. After some hesitation, I decided to go for the <a href="https://mybox.eco/produkt/mybox-plus">Plus</a> model, mainly because of its modularity. Should any hardware component need to be replaced or upgraded, it will be much easier and cheaper to do with a modular design.</p>
+<div id="fig-our-mybox" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-our-mybox-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-our-mybox" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-mybox-garage" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-mybox-garage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://blog.lhotka.name/posts/mybox-home-assistant/mybox-plus.jpg" class="img-fluid figure-img" data-ref-parent="fig-our-mybox">
 </div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-mybox-garage-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) Installation in our garage
+</figcaption>
 </figure>
 </div>
-<p>In any case, with our current electricity consumption the investment in a photovoltaic power plant (that was going to happen in late 2022, see TODO) would take quite long to return, even with current high energy prices. Unless, of course, we change the ways how we use electricity.</p>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-our-mybox" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-mybox-app" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-mybox-app-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://blog.lhotka.name/posts/mybox-home-assistant/mybox-app.png" class="img-fluid figure-img" style="width:60.0%" data-ref-parent="fig-our-mybox">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-mybox-app-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) Home screen of the app
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-our-mybox-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: MyBox Plus wallbox and mobile application
+</figcaption>
+</figure>
+</div>
+<p>On the other hand, since the wallbox was going to be installed in a locked garage, we didn’t need the optional RFID card reader. For the same reason I chose the tethered variant (with a fixed Type&nbsp;2 cable), as it is much more convenient to simply take the cable off the holder and plug it into the car.</p>
+<p>Finally, I didn’t order the <a href="https://mybox.eco/produkt/mybox-ac-sensor-modul-dynamickeho-rizeni-vykonu-nabijeci-stanice">AC Sensor</a> that can be used for adjusting wallbox charging power dynamically according to the current consumption of the household. My plan has been to implement such a control mechanism in Home Assistant, if it’s necessary at all.</p>
 </section>
-<section id="immediate-actions" class="level1">
-<h1>Immediate actions</h1>
-<p>We have made a few significant steps already in 2022, i.e.&nbsp;before the PV system was installed. This section contains only a brief overview, some of these steps certainly deserve a closer look in future blog posts.</p>
-<p>First of all, I bought a couple of smart plugs capable of measuring instantaneous power and energy output, with two aims:</p>
+<section id="preliminaries" class="level1">
+<h1>Preliminaries</h1>
+<p>In order to use MQTT in Home Assistant, <a href="https://www.home-assistant.io/integrations/mqtt/">MQTT integration</a> needs to be added, and an <em>MQTT broker</em> also has to be set up. Actually, the latter is one of the extra functions implemented in the MyBox software, I haven’t tried it though. A natural choice for Home Assistant users is to use the <a href="https://github.com/home-assistant/addons/blob/master/mosquitto/DOCS.md">Mosquitto broker</a> add-on. Its installation and configuration is very easy, one just has to create a special Home Assistant account &amp; password for use with the broker.</p>
+<p>Another tool that I found quite handy is <a href="http://mqtt-explorer.com">MQTT Explorer</a>. It is an open-source MQTT client that makes it very easy (apart from other functions) to inspect MQTT data hierarchy. Some examples will be given below. MQTT Explorer is available for Windows, MacOS and Linux.</p>
+</section>
+<section id="enabling-mqtt-in-mybox" class="level1">
+<h1>Enabling MQTT in MyBox</h1>
+<p>The local MQTT function isn’t turned on by default. To configure it, I first needed to obtain access to the <a href="https://cloud.mybox.pro">MyBox cloud portal</a> the configuration of the wallbox can be viewed and changed. I received the necessary credentials directly from the technician who did the wallbox installation.</p>
+<p>After logging into the portal and opening the device configuration, I scrolled down to the <em>local_mqtt</em> section, enabled it and filled in the parameters of my MQTT broker. The configured web form looks like this:</p>
+<div id="fig-mqtt-config" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mqtt-config-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://blog.lhotka.name/posts/mybox-home-assistant/mqtt-local.jpg" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mqtt-config-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: MyBox portal
+</figcaption>
+</figure>
+</div>
+<p>The two items that are masked out are the user name and password chosen for the Mosquitto broker user in Home Assistant. The <code>local-mqtt-host</code> parameter is the IP address of my Home Assistant server with Mosquitto broker. It is also necessary to configure the MQTT root topic. I chose <code>charger</code>, but anything reasonable can be used instead.</p>
+<p>In my case, the Home Assistant server can be accessed only from the local network, so I don’t need encryption and certificates.</p>
+</section>
+<section id="verifying-the-communication" class="level1">
+<h1>Verifying the communication</h1>
+<p>From the configuration page of the MQTT integration in Home Assistant, I was able to view and change wallbox parameters via MQTT. For example, in the box <strong>Listen to a topic</strong> I could specify the topic</p>
+<pre><code>charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/max-charge-current</code></pre>
+<p>and after pressing the <strong>START LISTENING</strong> button, the value of maximum charge current immediately poped up as seen in Figure&nbsp;3 (a).</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The leftmost level in a topic (<code>charger</code>) is the root topic configured in the cloud portal (see above). Immediately following is the device ID of my wallbox that can also be found in the portal.</p>
+</div>
+</div>
+<div id="fig-mqtt-config" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-mqtt-config-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-mqtt-config" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-listen" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-listen-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://blog.lhotka.name/posts/mybox-home-assistant/ha-listen.jpg" class="img-fluid figure-img" data-ref-parent="fig-mqtt-config">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-listen-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) Listening to an MQTT topic
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-mqtt-config" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-publish" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-publish-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://blog.lhotka.name/posts/mybox-home-assistant/ha-publish.jpg" class="img-fluid figure-img" data-ref-parent="fig-mqtt-config">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-publish-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) Publishing an MQTT packet
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-mqtt-config-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;3: Testing MQTT in Home Assistant
+</figcaption>
+</figure>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>It is also possible to dump all (a few dozen) parameters at once by using a wildcard topic with the hash symbol <code>#</code>, for example <code>charger/#</code>.</p>
+</div>
+</div>
+<p>Similarly, I was able to change a writable parameter by sending a new value with <code>/set</code> appended to the corresponding topic name. An example for the <code>max-charge-current</code> parameter is in Figure&nbsp;3 (b). In the MyBox mobile app (Figure&nbsp;1 (b)) we can immediately verify that indeed the maximum charge current is now 6.</p>
+</section>
+<section id="configuring-home-assistant-sensors-and-scripts" class="level1">
+<h1>Configuring Home Assistant sensors and scripts</h1>
+<p>With MQTT properly working, I used MQTT Explorer for connecting to the Mosquitto broker running on my Home Assistant server, and started browsing the MQTT tree of the wallbox. I then selected topics from the following two subtrees (both with the <code>charger/e5qb-ekgg-48wz-o07w/</code> prefix) for defining Home Assistant sensors and scripts, namely</p>
 <ul>
-<li><p>evaluate actual power consumption of home appliances</p></li>
-<li><p>enable remote control of selected appliances, especially heaters, with the prospect of including them in automation scenarios.</p></li>
+<li><p><code>ac-module-1-ac-module</code> – status and charging-related settings of the wallbox, see Figure&nbsp;4 (a).</p></li>
+<li><p><code>ac-module-1-ev-meter</code> – data about power output and energy consumption, see Figure&nbsp;4 (b).</p></li>
 </ul>
-<p>Regarding automation, I must admit that I am not a big fan of so-called smart homes. I think we can still operate lights and make our cups of tea manually. On the other hand, with electricity flowing down from our roof it makes a lot of sense to plan a bit ahead and turn on appliances, in particular the greedy ones, at appropriate times in order to minimize consumption from the grid. This is where a limited amount of automation comes handy.</p>
-<p>In June</p>
+<div id="fig-explorer" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-explorer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-explorer" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-ac-module" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-ac-module-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://blog.lhotka.name/posts/mybox-home-assistant/ac-module-1-ac-module.png" class="img-fluid figure-img" data-ref-parent="fig-explorer">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-ac-module-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) <code>ac-module-1-ac-module</code> subtree
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-explorer" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-ev-meter" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-ev-meter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://blog.lhotka.name/posts/mybox-home-assistant/ac-module-1-ev-meter.png" class="img-fluid figure-img" data-ref-parent="fig-explorer">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-ev-meter-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) <code>ac-module-1-ev-meter</code> subtree
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-explorer-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;4: Topics in MQTT Explorer
+</figcaption>
+</figure>
+</div>
+<p>Home Assistant sensors and binary sensors that monitor specific MQTT topics are defined in the <code>mqtt</code> section of Home Assistant configuration. I have them in a separate file <code>mqtt.yaml</code>, which is included in the main configuration file:</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>configuration.yaml</strong></pre>
+</div>
+<div class="sourceCode" id="cb2" data-filename="configuration.yaml" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mqtt</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> !include mqtt.yaml</span></span></code></pre></div>
+</div>
+<p>Sensors are configured in the <code>sensor</code> subsection. For instance, the sensor for maximum charge current is defined as follows:</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>mqtt.yaml</strong></pre>
+</div>
+<div class="sourceCode" id="cb3" data-filename="mqtt.yaml" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sensor</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb3-2"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">name</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"MyBox max charge current"</span></span>
+<span id="cb3-3"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">icon</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mdi:current-ac"</span></span>
+<span id="cb3-4"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">unique_id</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"e7446234-e557-4135-9117-3b9b6db3c0df"</span></span>
+<span id="cb3-5"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">unit_of_measurement</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A"</span></span>
+<span id="cb3-6"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">state_class</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> measurement</span></span>
+<span id="cb3-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">    state_topic</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">: </span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">&gt;-</span></span>
+<span id="cb3-8">      charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/max-charge-current</span></code></pre></div>
+</div>
+<p>Similarly, binary sensors appear in the <code>binary_sensor</code> subsection, for example</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>mqtt.yaml</strong></pre>
+</div>
+<div class="sourceCode" id="cb4" data-filename="mqtt.yaml" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb4-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">binary_sensor</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb4-2"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">name</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"MyBox cable locked"</span></span>
+<span id="cb4-3"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">icon</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mdi:ev-plug-type2"</span></span>
+<span id="cb4-4"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">unique_id</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"f010644a-8e6f-4811-94b1-7a75fa05f7d2"</span></span>
+<span id="cb4-5"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">    state_topic</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">: </span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">&gt;-</span></span>
+<span id="cb4-6">      charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/cable-locked</span>
+<span id="cb4-7"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">payload_on</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"true"</span></span>
+<span id="cb4-8"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">payload_off</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"false"</span></span></code></pre></div>
+</div>
+<p>Scripts can be used for implementing various actions such as changing a parameter value or pausing/resuming/stopping a charging session. This script changes the value of maximum charge current:</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>scripts.yaml</strong></pre>
+</div>
+<div class="sourceCode" id="cb5" data-filename="scripts.yaml" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb5-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mybox_set_max_charge_current</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb5-2"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">alias</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Set the maximum charge current"</span></span>
+<span id="cb5-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">  description</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">: </span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">&gt;-</span></span>
+<span id="cb5-4">    Set the maximum charge current for MyBox.</span>
+<span id="cb5-5"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">icon</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mdi:current-ac"</span></span>
+<span id="cb5-6"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">fields</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb5-7"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">value</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb5-8"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">name</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Max charge current value"</span></span>
+<span id="cb5-9"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">selector</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb5-10"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">        </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">number</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb5-11"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">          </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">min</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span></span>
+<span id="cb5-12"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">          </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">max</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">16</span></span>
+<span id="cb5-13"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">          </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">step</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">1</span></span>
+<span id="cb5-14"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">          </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">unit_of_measurement</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A"</span></span>
+<span id="cb5-15"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">          </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mode</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> slider</span></span>
+<span id="cb5-16"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sequence</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb5-17"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">action</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> mqtt.publish</span></span>
+<span id="cb5-18"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">data</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb5-19"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">        topic</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">: </span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">&gt;-</span></span>
+<span id="cb5-20">          charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/max-charge-current/set</span>
+<span id="cb5-21"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">        </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">payload_template</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{{ value }}"</span></span></code></pre></div>
+</div>
+<p>And the following script pauses the charging session:</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>mqtt.yaml</strong></pre>
+</div>
+<div class="sourceCode" id="cb6" data-filename="mqtt.yaml" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb6-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mybox_pause_charging</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb6-2"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">alias</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Pause charging"</span></span>
+<span id="cb6-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">  description</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">: </span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">&gt;-</span></span>
+<span id="cb6-4">    Pause EV charging from MyBox.</span>
+<span id="cb6-5"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mode</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> single</span></span>
+<span id="cb6-6"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sequence</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb6-7"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">action</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> mqtt.publish</span></span>
+<span id="cb6-8"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">data</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb6-9"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">        topic</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">: </span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">&gt;-</span></span>
+<span id="cb6-10">          charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/pause-charging/set</span></code></pre></div>
+</div>
+<p>Complete contents of configuration files that I currently use for MyBox can be downloaded from <a href="https://github.com/llhotka/mybox-ha-mqtt">GitHub</a>.</p>
 </section>
-<section id="what-next" class="level1">
-<h1>What next?</h1>
+<section id="conclusions" class="level1">
+<h1>Conclusions</h1>
+<p>MyBox Plus is a nice piece of hardware with rich software functionality. I’ve been using it regularly for overnight charging at 11 kW (the wallbox supports up to 22 kW) with no issues whatsoever.</p>
+<p>My only complaint is that I cannot enforce single-phase operation: if a car has has a three-phase onboard charger, then MyBox will feed it over three phases. This doesn’t look like a limitation, but it prevents me from using MyBox in the mode of using only excess energy from our photovoltaic system – its minimum charging power is 4.1&nbsp;kW (3&nbsp;×&nbsp;6&nbsp;A), which is very close to the peak PV production at optimal conditions, so there is essentially no space for power regulation. Therefore, I ended up using my older <a href="https://ecovolter.com/en">EcoVolter</a> portable wallbox for excess-energy charging because it can be switched to single-phase operation a thus go with the charging power down to 1.4&nbsp;kW (1&nbsp;×&nbsp;6&nbsp;A). I plan to write another blog post about integrating this wallbox to Home Assistant and using it in the excess-energy mode.</p>
+<p>But back to MyBox: integrating it to Home Assistant via MQTT and YAML configuration turned out to be pretty easy and perfectly sufficient for our purposes. It might make sense to write a full-fledged HA integration in Python, but I guess I am not in the right position to do it, as I don’t have some of the interesting hardware modules (RFID card reader, AC sensor) and don’t use any security-related functions. Potential developers of such an integration would also appreciate more extensive technical documentation.</p>
 
 
 </section>
 
  ]]></description>
-  <category>energy</category>
-  <guid>https://blog.lhotka.name/posts/energy-starting-line/energy-starting-line.html</guid>
-  <pubDate>Tue, 04 Oct 2022 22:00:00 GMT</pubDate>
+  <category>electromobility</category>
+  <category>Home Assistant</category>
+  <guid>https://blog.lhotka.name/posts/mybox-home-assistant/</guid>
+  <pubDate>Tue, 29 Oct 2024 23:00:00 GMT</pubDate>
+  <media:content url="https://blog.lhotka.name/posts/mybox-home-assistant/mybox-ha.png" medium="image" type="image/png" height="157" width="144"/>
 </item>
 </channel>
 </rss>
