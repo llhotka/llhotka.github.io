@@ -268,7 +268,7 @@ which is very close to the peak PV production at optimal conditions,
 so there is essentially no space for power regulation. Therefore, I
 ended up using my older [EcoVolter](https://ecovolter.com/en) portable
 wallbox for excess-energy charging because it can be switched to
-single-phase operation a thus go with the charging power down to
+single-phase operation and thus go with the charging power down to
 1.4 kW (1 × 6 A). I plan to write another blog post about integrating
 this wallbox to Home Assistant and using it in the excess-energy mode.
 
