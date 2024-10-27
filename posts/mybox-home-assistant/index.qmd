@@ -1,6 +1,6 @@
 ---
 title: "MyBox and Home Assistant"
-date: "2024-10-30"
+date: "2024-10-29"
 description: >-
   This post describes how to integrate MyBox wallbox to Home Assistant
   via MQTT.
@@ -68,13 +68,13 @@ necessary at all.
 In order to use MQTT in Home Assistant, [MQTT
 integration](https://www.home-assistant.io/integrations/mqtt/) needs
 to be added, and an *MQTT broker* also has to be set up. Actually, the
-latter is one of the extra functions implemented in the MyBox software, I
-haven't tried it though. A natural choice for Home Assistant users is
-to use the [Mosquitto
+latter is one of the extra functions implemented in the MyBox
+software, I haven't tried it though. A natural choice for Home
+Assistant users is to use the [Mosquitto
 broker](https://github.com/home-assistant/addons/blob/master/mosquitto/DOCS.md)
-add-on. Its installation and configuration is very easy, one just has
-to create a special Home Assistant account & password for use with the
-broker.
+add-on. Its installation and configuration is pretty straightforward,
+one just has to create a special Home Assistant account & password for
+use with the broker.
 
 Another tool that I found quite handy is [MQTT
 Explorer](http://mqtt-explorer.com). It is an open-source MQTT client
@@ -86,7 +86,7 @@ available for Windows, MacOS and Linux.
 
 The local MQTT function isn't turned on by default. To configure it, I
 first needed to obtain access to the [MyBox cloud
-portal](https://cloud.mybox.pro) the configuration of the wallbox can
+portal](https://cloud.mybox.pro), where the configuration of the wallbox can
 be viewed and changed. I received the necessary credentials directly
 from the technician who did the wallbox installation.
 
@@ -279,4 +279,5 @@ integration in Python, but I guess I am not in the right position to do
 it, as I don't have some of the interesting hardware modules (RFID
 card reader, AC sensor) and don't use any security-related
 functions. Potential developers of such an integration would also
-appreciate more extensive technical documentation. 
+appreciate more extensive technical documentation, which is currently
+rather scarce.
