@@ -28,9 +28,11 @@ should be made available to customers “soon”.
 
 Why did I choose the MyBox platform in the first place?  Well,
 although it is more expensive than some of the competing products, it
-offers a lot of useful functionality now, hopefully with more to come
-later through software upgrades. One feature that I'd certainly love
-to try is V2H (vehicle-to-home) or V2G (vehicle-to-grid) as per [ISO
+offers a lot of useful functionality. Yet even more important for me
+was that the company seems to be aiming at technological innovations, so
+hopefully more exciting functionality will come later through software
+and/or hardware upgrades. One feature that I'd certainly love to try
+is V2H (vehicle-to-home) or V2G (vehicle-to-grid) as per [ISO
 15118](https://www.switch-ev.com/blog/what-is-iso-15118).
 
 The low-end [MyBox Home](https://mybox.eco/produkt/mybox-home) model
@@ -116,7 +118,7 @@ topic
 charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/max-charge-current
 ```
 and after pressing the **START LISTENING** button, the value of
-maximum charge current immediately poped up as seen in @fig-listen.
+maximum charge current immediately popped up as seen in @fig-listen.
 
 ::: {.callout-important}
 The leftmost level in a topic (`charger`) is the root topic configured
@@ -281,3 +283,8 @@ card reader, AC sensor) and don't use any security-related
 functions. Potential developers of such an integration would also
 appreciate more extensive technical documentation, which is currently
 rather scarce.
+
+**Acknowledgment:** I am grateful to Tomáš Kada, product specialist
+at MyBox, who helped me with setting up MQTT and promptly responded to
+all questions that I had.
+
