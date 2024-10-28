@@ -218,7 +218,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>I use the MQTT messaging protocol for getting data from and sending commands to the wallbox. Modbus TCP could be another option in the future but, while listed in the <a href="https://mybox.eco/wp-content/uploads/2023/11/mybox_plus_datasheet_2str.pdf">datasheet</a>, it is currently reserved only for internal use. According to the vendor, it should be made available to customers “soon”.</p>
 <section id="mybox-plus" class="level1">
 <h1>MyBox Plus</h1>
-<p>Why did I choose the MyBox platform in the first place? Well, although it is more expensive than some of the competing products, it offers a lot of useful functionality now, hopefully with more to come later through software upgrades. One feature that I’d certainly love to try is V2H (vehicle-to-home) or V2G (vehicle-to-grid) as per <a href="https://www.switch-ev.com/blog/what-is-iso-15118">ISO 15118</a>.</p>
+<p>Why did I choose the MyBox platform in the first place? Well, although it is more expensive than some of the competing products, it offers a lot of useful functionality. Yet even more important for me was that the company seems to be aiming at technological innovations, so hopefully more exciting functionality will come later through software and/or hardware upgrades. One feature that I’d certainly love to try is V2H (vehicle-to-home) or V2G (vehicle-to-grid) as per <a href="https://www.switch-ev.com/blog/what-is-iso-15118">ISO 15118</a>.</p>
 <p>The low-end <a href="https://mybox.eco/produkt/mybox-home">MyBox Home</a> model would most likely suffice for our home BEV charging purposes. After some hesitation, I decided to go for the <a href="https://mybox.eco/produkt/mybox-plus">Plus</a> model, mainly because of its modularity. Should any hardware component need to be replaced or upgraded, it will be much easier and cheaper to do with a modular design.</p>
 <div id="fig-our-mybox" class="quarto-layout-panel">
 <figure class="quarto-float quarto-float-fig figure">
@@ -284,7 +284,7 @@ Figure&nbsp;2: MyBox portal
 <h1>Verifying the communication</h1>
 <p>From the configuration page of the MQTT integration in Home Assistant, I was able to view and change wallbox parameters via MQTT. For example, in the box <strong>Listen to a topic</strong> I could specify the topic</p>
 <pre><code>charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/max-charge-current</code></pre>
-<p>and after pressing the <strong>START LISTENING</strong> button, the value of maximum charge current immediately poped up as seen in <a href="#fig-listen" class="quarto-xref">Figure&nbsp;3 (a)</a>.</p>
+<p>and after pressing the <strong>START LISTENING</strong> button, the value of maximum charge current immediately popped up as seen in <a href="#fig-listen" class="quarto-xref">Figure&nbsp;3 (a)</a>.</p>
 <div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -475,6 +475,7 @@ Figure&nbsp;4: Topics in MQTT Explorer
 <p>MyBox Plus is a nice piece of hardware with rich software functionality. I’ve been using it regularly for overnight charging at 11 kW (the wallbox supports up to 22 kW) with no issues whatsoever.</p>
 <p>My only complaint is that I cannot enforce single-phase operation: if a car has has a three-phase onboard charger, then MyBox will feed it over three phases. This doesn’t look like a limitation, but it prevents me from using MyBox in the mode of using only excess energy from our photovoltaic system – its minimum charging power is 4.1&nbsp;kW (3&nbsp;×&nbsp;6&nbsp;A), which is very close to the peak PV production at optimal conditions, so there is essentially no space for power regulation. Therefore, I ended up using my older <a href="https://ecovolter.com/en">EcoVolter</a> portable wallbox for excess-energy charging because it can be switched to single-phase operation and thus go with the charging power down to 1.4&nbsp;kW (1&nbsp;×&nbsp;6&nbsp;A). I plan to write another blog post about integrating this wallbox to Home Assistant and using it in the excess-energy mode.</p>
 <p>But back to MyBox: integrating it to Home Assistant via MQTT and YAML configuration turned out to be pretty easy and perfectly sufficient for our purposes. It might make sense to write a full-fledged HA integration in Python, but I guess I am not in the right position to do it, as I don’t have some of the interesting hardware modules (RFID card reader, AC sensor) and don’t use any security-related functions. Potential developers of such an integration would also appreciate more extensive technical documentation, which is currently rather scarce.</p>
+<p><strong>Acknowledgment:</strong> I am grateful to Tomáš Kada, product specialist at MyBox, who helped me with setting up MQTT and promptly responded to all questions that I had.</p>
 
 
 </section>
