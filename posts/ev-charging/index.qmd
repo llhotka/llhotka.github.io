@@ -1,0 +1,13 @@
+---
+title: "EV charging: real challenges are elsewhere"
+date: "2024-11-29"
+description: >-
+  EV charging reality – practical experiences, recommendations and
+  challenges.
+categories:
+  - electromobility
+image: "ionity-silvaplana.jpg"
+---
+
+Among all disinformations about electromobility, the myths related to
+various aspects of EV assume a very prominent place. 
