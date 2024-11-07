@@ -10,4 +10,5 @@ image: "ionity-silvaplana.jpg"
 ---
 
 Among all disinformations about electromobility, the myths related to
-various aspects of EV assume a very prominent place. 
+various aspects of EV assume a very prominent place. Some of them are
+relatively easy to debunk.
