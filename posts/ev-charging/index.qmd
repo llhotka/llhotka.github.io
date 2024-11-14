@@ -12,3 +12,17 @@ image: "ionity-silvaplana.jpg"
 Among all disinformations about electromobility, the myths related to
 various aspects of EV assume a very prominent place. Some of them are
 relatively easy to debunk.
+
+# Power consumption and range
+
+The crucial argument of EV haters is the absolute range that one make on
+one charge. The ID. Buzz is a mini van, so its aerodynamics  In my experience, which of course depends on our usual
+travelling mode, this is not an issue at all, 
+
+# High-speed charging
+
+# Charging and the city
+
+# Home charging
+
+# Conclusions
