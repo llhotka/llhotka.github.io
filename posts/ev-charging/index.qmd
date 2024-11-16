@@ -1,31 +1,22 @@
 ---
-title: "EV charging: real challenges are elsewhere"
+title: "EV Charging and the City"
 date: "2024-11-29"
 description: >-
-  EV charging reality – practical experiences, recommendations and
-  challenges.
+  When it comes to electromobility, and EV charging in particular,
+  it is not always easy to tell apart truth from biased statements
+  or outright lies. This blog post summarizes my experiences and
+  surprises related to charging at public AC stations that are
+  becoming pretty common in European cities.  
 categories:
   - electromobility
 image: "ionity-silvaplana.jpg"
 ---
 
-Among all disinformations about electromobility, the myths related to
-various aspects of EV assume a very prominent place. Some of them are
-relatively easy to debunk.
+Arguments about electromobility, coming from both supporters and haters,
+are often a priori aimed at influencing non-technical audience without
+own practical experience. Such a purpose then limits the choice of means:
+the touted reali 
 
-# Power consumption and range
-
-The crucial argument of EV haters is the absolute range that one make on
-one charge. The ID. Buzz is a mini van, so its aerodynamics is far from
-perfect, but still, in my experience, the range per se isn't a real issue.
-This of course depends on our usual travelling mode, which is quite relaxed:
-on a motorway, we are fine with a steady speed of about 115 km/h, and don't
-mind stopping every 2 hours for thirty minutes or so.  
-
-# High-speed charging
-
-# Charging and the city
-
-# Home charging
+# My kingdom for a free charger!
 
 # Conclusions
