@@ -12,7 +12,15 @@ categories:
 image: "ionity-silvaplana.jpg"
 ---
 
-Arguments about electromobility, coming from both supporters and haters,
+A newcomer to an unknown territory, be it a foreign country or a new
+technology, is often confronted with a reality that is different from
+what s/he read or heard in advance about the subject. I've had 
+a similar experience regarding electromobility, and EV charging in
+particular. The usual arguments circulating in the public space, coming
+from both supporters and haters, are often oversimplified or biased.
+
+Most of the discussions revolve around such aspect like the driving range
+(the distance an EV can travel on a single charge) or the charging speed
 are often a priori aimed at influencing non-technical audience without
 own practical experience. Such a purpose then limits the choice of means:
 the touted reali 
