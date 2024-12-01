@@ -262,7 +262,7 @@ functionality. I've been using it regularly for overnight charging at
 11 kW (the wallbox supports up to 22 kW) with no issues whatsoever.
 
 My only complaint is that I cannot enforce single-phase operation: if
-a car has has a three-phase onboard charger, then MyBox will feed it
+a car has a three-phase onboard charger, then MyBox will feed it
 over three phases. This doesn't look like a limitation, but it prevents
 me from using MyBox in the mode of using only excess energy from our
 photovoltaic system – its minimum charging power is 4.1 kW (3 × 6 A),
