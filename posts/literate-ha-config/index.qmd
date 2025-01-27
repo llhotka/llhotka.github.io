@@ -1,0 +1,24 @@
+---
+title: "Literate Home Assistant Configuration"
+date: "2025-02-28"
+description: >-
+  Configuration of Home Assistant
+categories:
+  - Org mode
+  - literate programming
+  - Home Assistant
+image: "unicorn-ha-logo.svg"
+---
+
+## Introduction
+
+[Home Assistant](https://www.home-assistant.io) is a leading
+open-source platform for home automation. My first experiments with it
+date back to 2022, and my evolution path since then might be, I guess,
+quite typical. I started small but kept adding new smart devices,
+automations and all that stuff. Before long I realized that my
+configuration has become complex and unwieldy. I found it difficult to
+work with definitions scattered across the front-end UI pages and YAML
+files. Improvements to the user interface, especially categories
+
+## Code blocks and YAML
