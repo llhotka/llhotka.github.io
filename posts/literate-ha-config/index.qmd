@@ -2,7 +2,11 @@
 title: "Literate Home Assistant Configuration"
 date: "2025-02-28"
 description: >-
-  Configuration of Home Assistant
+  Larger instalations of Home Assistant smart-home networks usually
+  lead to a fairly complex configuration that is difficult to develop
+  and maintain. This blog post describes my system of HA YAML code
+  management, documentation and deployment based on Git, Emacs editor
+  with its Org mode, an principles of literate programming.    
 categories:
   - Org mode
   - literate programming
@@ -14,7 +18,7 @@ image: "unicorn-ha-logo.svg"
 
 [Home Assistant](https://www.home-assistant.io) is a leading
 open-source platform for home automation. My first experiments with it
-date back to 2022, and my evolution path since then might be, I guess,
+date back to 2022, and my evolution path since then might have been, I guess,
 quite typical. I started small but kept adding new smart devices,
 automations and all that stuff. Before long I realized that my
 configuration has become complex and unwieldy. I found it quite difficult to
@@ -34,7 +38,7 @@ As it turned out, with the toolset that I've been using for decades, especially
 [Git](https://git-scm.com), [Emacs](https://www.gnu.org/software/emacs) and
 [Org](https://orgmode.org), it was possible to achieve the above requirements
 pretty easily. I understand that my solution isn't for everybody but, after two years
-of almost daily usage it has been
-working 
+of almost daily usage, I must say that it works almost perfectly and already saved me
+a lot of time and trouble.
 
 ## Code blocks and YAML
