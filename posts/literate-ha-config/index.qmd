@@ -17,8 +17,24 @@ open-source platform for home automation. My first experiments with it
 date back to 2022, and my evolution path since then might be, I guess,
 quite typical. I started small but kept adding new smart devices,
 automations and all that stuff. Before long I realized that my
-configuration has become complex and unwieldy. I found it difficult to
-work with definitions scattered across the front-end UI pages and YAML
-files. Improvements to the user interface, especially categories
+configuration has become complex and unwieldy. I found it quite difficult to
+work with definitions scattered across the front-end UI pages and/or YAML
+files, despite all the great improvements to the user interface that have
+been introduced recently.
+
+I spent some time considering my requirements and came up with the following list:
+1. Source code management, i.e. , applied to all
+   YAML definitions, perhaps except trivial ones.
+1. Related definitions across all categories, such as automations, scripts or
+   template sensors, should be kept together.
+1. It should be possible to document definitions well beyond what's reasonable
+   to have as object descriptions.
+
+As it turned out, with the toolset that I've been using for decades, especially
+[Git](https://git-scm.com), [Emacs](https://www.gnu.org/software/emacs) and
+[Org](https://orgmode.org), it was possible to achieve the above requirements
+pretty easily. I understand that my solution isn't for everybody but, after two years
+of almost daily usage it has been
+working 
 
 ## Code blocks and YAML
