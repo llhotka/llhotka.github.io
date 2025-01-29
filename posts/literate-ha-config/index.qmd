@@ -21,7 +21,7 @@ open-source platform for home automation. My first experiments with it
 date back to 2022, and my evolution path since then might have been, I guess,
 quite typical. I started small but kept adding new smart devices,
 automations and all that stuff. Before long I realized that my
-configuration has become complex and unwieldy. I found it quite difficult to
+configuration has become complex and unwieldy. I found it rather difficult to
 work with definitions scattered across the front-end UI pages and/or YAML
 files, despite all the great improvements to the user interface that have
 been introduced recently.
@@ -36,9 +36,19 @@ I spent some time considering my requirements and came up with the following lis
 
 As it turned out, with the toolset that I've been using for decades, especially
 [Git](https://git-scm.com), [Emacs](https://www.gnu.org/software/emacs) and
-[Org](https://orgmode.org), it was possible to achieve the above requirements
+[Org mode](https://orgmode.org), it was possible to achieve the above requirements
 pretty easily. I understand that my solution isn't for everybody but, after two years
 of almost daily usage, I must say that it works almost perfectly and already saved me
 a lot of time and trouble.
 
 ## Code blocks and YAML
+
+One of the less frequently used features of Org mode is the ability to intersperse
+text with code blocks enclosed in `#+BEGIN_SRC <language>` and `#+END_SRC`, where `<language>`
+identifies the programming language in which the code block is written. Even though Org
+supports all common languages, YAML isn't among them – maybe because it really isn't a
+programming language. It was however quite easy to implement support for YAML by modifying
+the provided Emacs Lisp
+[template](https://git.sr.ht/~bzg/worg/tree/master/item/org-contrib/babel/ob-template.el).
+The resulting module ob-yaml.el is available on GitHub and can be loaded by Emacs in the
+usual way:
