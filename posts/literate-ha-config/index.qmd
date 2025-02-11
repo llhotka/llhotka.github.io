@@ -41,7 +41,7 @@ pretty easily. I understand that my solution isn't for everybody but, after two 
 of almost daily usage, I must say that it works almost perfectly and already saved me
 a lot of time and trouble.
 
-## Code blocks and YAML
+## Code blocks and YAML in Emacs
 
 One of the less frequently used features of Org mode is the ability to intersperse
 text with code blocks enclosed in `#+BEGIN_SRC <language>` and `#+END_SRC`, where `<language>`
@@ -52,3 +52,15 @@ the provided Emacs Lisp
 [template](https://git.sr.ht/~bzg/worg/tree/master/item/org-contrib/babel/ob-template.el).
 The resulting module ob-yaml.el is available on GitHub and can be loaded by Emacs in the
 usual way:
+
+## Literate programming
+
+The term *literate programming* was coined by Donald Knuth in 1984 as a way for developing computer programs
+as pieces of literature that humans can easily read and enjoy.
+He then used this programming method for developing the T~E~X typesetting
+system that many of us still use. The Org mode uses the [noweb](https://www.cs.tufts.edu/~nr/noweb)
+implementation of literate programming. Two of its features are important for our purposes:
+* Designated code blocks can be “tangled“ – extracted from the Org source and pasted sequentially
+  into one or more files.
+* A named code block can be referred to from other code blocks by using its name enclosed in `<<` and `>>`.
+  The code from the referred block is then inserted in the referring block when the latter is tangled.
