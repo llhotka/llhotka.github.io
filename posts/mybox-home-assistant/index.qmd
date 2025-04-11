@@ -24,7 +24,7 @@ future but, while listed in the
 it is currently reserved only for internal use. According to the vendor, it
 should be made available to customers “soon”.
 
-# MyBox Plus
+## MyBox Plus
 
 Why did I choose the MyBox platform in the first place?  Well,
 although it is more expensive than some of the competing products, it
@@ -65,7 +65,7 @@ according to the current consumption of the household. My plan has
 been to implement such a control mechanism in Home Assistant, if it's
 necessary at all.
 
-# Preliminaries
+## Preliminaries
 
 In order to use MQTT in Home Assistant, [MQTT
 integration](https://www.home-assistant.io/integrations/mqtt/) needs
@@ -84,7 +84,7 @@ that makes it very easy (apart from other functions) to inspect MQTT
 data hierarchy. Some examples will be given below. MQTT Explorer is
 available for Windows, MacOS and Linux. 
 
-# Enabling MQTT in MyBox
+## Enabling MQTT in MyBox
 
 The local MQTT function isn't turned on by default. To configure it, I
 first needed to obtain access to the [MyBox cloud
@@ -108,7 +108,7 @@ instead.
 In my case, the Home Assistant server can be accessed only from the
 local network, so I don't need encryption and certificates.
 
-# Verifying the communication
+## Verifying the communication
 
 From the configuration page of the MQTT integration in Home Assistant,
 I was able to view and change wallbox parameters via
@@ -147,7 +147,7 @@ for the `max-charge-current` parameter is in @fig-publish. In the
 MyBox mobile app (@fig-mybox-app) we can immediately verify that
 indeed the maximum charge current is now 6.
 
-# Configuring Home Assistant sensors and scripts
+## Configuring Home Assistant sensors and scripts
 
 With MQTT properly working, I used MQTT Explorer for connecting to the
 Mosquitto broker running on my Home Assistant server, and started
@@ -255,7 +255,7 @@ Complete contents of configuration files that I currently use for
 MyBox can be downloaded from
 [GitHub](https://github.com/llhotka/mybox-ha-mqtt).
 
-# Conclusions
+## Conclusions
 
 MyBox Plus is a nice piece of hardware with rich software
 functionality. I've been using it regularly for overnight charging at
