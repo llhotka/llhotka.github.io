@@ -18,49 +18,271 @@ image: "unicorn-ha-logo.svg"
 
 [Home Assistant](https://www.home-assistant.io) is a leading
 open-source platform for home automation. My first experiments with it
-date back to 2022, and my evolution path since then might have been, I guess,
-quite typical. I started small but kept adding new smart devices,
-automations and all that stuff. Before long I realized that my
-configuration has become complex and unwieldy. I found it rather difficult to
-work with definitions scattered across the front-end UI pages and/or YAML
-files, despite all the great improvements to the user interface that have
-been introduced recently.
+date back to 2022, and my evolution path since then might have been, I
+guess, quite typical. I started small but kept adding new smart
+devices, automations and all that stuff. Before long I realized that
+my configuration has become complex and unwieldy. I found it rather
+difficult to work with definitions scattered across the front-end UI
+pages and/or YAML files, despite all the great improvements to the
+user interface that have been introduced recently.
 
-I spent some time considering my requirements and came up with the following list:
-1. Source code management, i.e. , applied to all
-   YAML definitions, perhaps except trivial ones.
-1. Related definitions across all categories, such as automations, scripts or
-   template sensors, should be kept together.
-1. It should be possible to document definitions well beyond what's reasonable
-   to have as object descriptions.
+I spent some time considering my requirements and came up with the
+following list:
 
-As it turned out, with the toolset that I've been using for decades, especially
-[Git](https://git-scm.com), [Emacs](https://www.gnu.org/software/emacs) and
-[Org mode](https://orgmode.org), it was possible to achieve the above requirements
-pretty easily. I understand that my solution isn't for everybody but, after two years
-of almost daily usage, I must say that it works almost perfectly and already saved me
-a lot of time and trouble.
+1. Source code management applied to all YAML definitions, perhaps
+   except trivial ones.
+1. Related definitions across all categories, such as automations,
+   scripts or template sensors, should be kept together.
+1. It should be possible to document definitions well beyond what's
+   reasonable to have as object descriptions.
+1. I want to keep an archive of scripts, template sensors etc. that
+   needn't be necessarily configured.
+
+As it turned out, with the toolset that I've been using for decades,
+especially [Git](https://git-scm.com),
+[Emacs](https://www.gnu.org/software/emacs) and [Org
+mode](https://orgmode.org), it was possible to achieve the above
+requirements pretty easily. I realize that my solution isn't for
+everybody but, after two years of almost daily usage, I must say that
+it works almost perfectly and already saved me a lot of time and
+trouble.
 
 ## Code blocks and YAML in Emacs
 
-One of the less frequently used features of Org mode is the ability to intersperse
-text with code blocks enclosed in `#+BEGIN_SRC <language>` and `#+END_SRC`, where `<language>`
-identifies the programming language in which the code block is written. Even though Org
-supports all common languages, YAML isn't among them – maybe because it really isn't a
-programming language. It was however quite easy to implement support for YAML by modifying
-the provided Emacs Lisp
+One of the less frequently used features of Org mode is the ability to
+intersperse text with code blocks enclosed in `#+begin_src <language>`
+and `#+end_src`, where `<language>` identifies the programming
+language in which the code block is written. If such a block is opened
+for editing (the default key combination for this is `Ctrl-C '`),
+Emacs activates the editing mode that's available for the given
+language, and then inserts the edited code back to the Org source
+file.
+
+Even though Org supports all common languages, YAML isn't among them –
+maybe because it really isn't a programming language. It was however
+quite easy to implement support for YAML code blocks by modifying the
+provided Emacs Lisp
 [template](https://git.sr.ht/~bzg/worg/tree/master/item/org-contrib/babel/ob-template.el).
-The resulting module ob-yaml.el is available on GitHub and can be loaded by Emacs in the
-usual way:
+The resulting module ob-yaml.el is available on [GitHub](https://github.com/llhotka/ob-yaml) and can be
+loaded in Emacs [as usual](https://www.gnu.org/software/emacs/manual/html_node/eintr/Loading-Files.html).
 
 ## Literate programming
 
-The term *literate programming* was coined by Donald Knuth in 1984 as a way for developing computer programs
-as pieces of literature that humans can easily read and enjoy.
-He then used this programming method for developing the T~E~X typesetting
-system that many of us still use. The Org mode uses the [noweb](https://www.cs.tufts.edu/~nr/noweb)
-implementation of literate programming. Two of its features are important for our purposes:
-* Designated code blocks can be “tangled“ – extracted from the Org source and pasted sequentially
-  into one or more files.
-* A named code block can be referred to from other code blocks by using its name enclosed in `<<` and `>>`.
-  The code from the referred block is then inserted in the referring block when the latter is tangled.
+The term *literate programming* was coined by Donald Knuth in 1984 as
+a way for developing computer programs as pieces of literature that
+humans can easily read and enjoy.  He then used this programming
+method for developing the T~E~X typesetting system that many of us
+still use. The Org mode uses the
+[noweb](https://www.cs.tufts.edu/~nr/noweb) implementation of literate
+programming. Two of its features are important for our purposes:
+
+* Designated code blocks can be “tangled“ – extracted from the Org
+  source and pasted sequentially into one or more files.
+* A named code block can be referred to from other code blocks by
+  using its name enclosed in `<<` and `>>`.  The code from the
+  referred block is then inserted in the referring block when the
+  latter is tangled.
+
+The former approach is simpler and useful for putting together chunks
+that are at the top level of YAML hierarchy, for example
+
+```yaml
+#+begin_src yaml :tangle customizations.yaml
+  sensor.ecovolter_total_energy:
+    device_class: energy
+#+end_src
+```
+
+Chunks with the same value of the `:tangle` parameter are collected,
+in the order as they appear in the source Org file, in the
+configuration file `customizations.yaml`.
+
+YAML chunks to be placed somewhere deeper in the hierarchy can be
+handled using the second approach (noweb references). One has to write
+a skeleton configuration file, and then refer to individual chunks
+from it. For instance, the configuration file for
+[RESTful](https://www.home-assistant.io/integrations/rest) integration
+look like this (abridged):
+```yaml
+#+begin_src yaml :tangle rest.yaml
+  - resource: !secret ecovolter_get_url
+    scan_interval: 5
+    verify_ssl: true
+    headers:
+      X-API-KEY: !secret ecovolter_api_key
+    sensor:
+      <<sensor.ecovolter_boost_current>>
+      <<sensor.ecovolter_target_current>>
+      <<sensor.ecovolter_boost_time>>
+      ...
+    binary_sensor:
+      <<binary_sensor.ecovolter_single_phase>>
+      <<binary_sensor.ecovolter_charging_enabled>>
+      ...
+#+end_src
+```
+
+YAML definitions of all sensors or binary sensors may appear anywhere
+in the source Org file. Each has to be designated by the same name
+that was used in the corresponding noweb reference (between the
+chevrons `<<` and `>>`. Here is an example:
+```yaml
+#+NAME: sensor.ecovolter_target_current
+#+begin_src yaml
+  - name: "EcoVolter target current"
+    unique_id: "ccbfbac7-8eb3-4bb9-9951-4d41acfd5a1e"
+    icon: "mdi:car-electric"
+    value_template: "{{ value_json.targetCurrent }}"
+    unit_of_measurement: "A"
+#+end_src
+```
+
+When tangling the output YAML file, Emacs observes the indentation
+level of the noweb reference and indents the included chunk
+accordingly. The chunk itself thus needn't be indented within it code
+block, which is very useful.
+
+The noweb references may use any names, as long as they are unique,
+but I found it very convenient to use complete HA entity names because
+one can then immediately look up the entity in the graphical UI.
+
+## Deployment
+
+It's nice to be able to generate all YAML configuration files from a
+single Org source, but by itself it isn't sufficient. In order to make
+this system practical, I had to find a way for automating the process
+of deploying the generated files on my Home Assistant
+server. After some experimenting I ended up with the procedure
+described below. There can certainly be other ways of achieving the
+same but here I was able to leverage functionality already available in Git
+and Home Assistant.
+
+The procedure consists of the following steps:
+
+1. Edit the source Org file Emacs.
+1. Review, stage and commit the changes to Git.
+1. Push the new commit(s) to a remote repository on my home network
+   server.
+1. Activate the new configuration on the Home Assistant server,
+   usually via quick reload.
+
+Most of of the underlying magic happens in step 3: the remote Git
+repository uses a pre-receive
+[hook](https://git-scm.com/docs/githooks) that does the following:
+
+* check out the working tree on the remote server
+* use Emacs in the batch mode on it to tangle all YAML configuration
+  files (still inside the working tree)
+* use [rsync](https://rsync.samba.org) to synchronize modified YAML
+  files with the `config` directory on my HA server.
+
+Heretang is a transcript of the `git push` operation that also contains
+terminal output of the hook script:
+
+```
+$ git push
+Enumerating objects: 5, done.
+Counting objects: 100% (5/5), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 343 bytes | 343.00 KiB/s, done.
+Total 3 (delta 2), reused 0 (delta 0), pack-reused 0
+remote: Already on 'master'
+remote: Loading /etc/emacs/site-start.d/00debian.el (source)...
+remote: Loading /etc/emacs/site-start.d/50autoconf.el (source)...
+remote: Tangled 36 code blocks from ll-ha-config.org
+remote: sending incremental file list
+remote: automations.yaml
+remote:
+remote: sent 45,826 bytes  received 47 bytes  30,582.00 bytes/sec
+remote: total size is 127,670  speedup is 2.78
+To trail.lhotka.name:Depot/hazard
+   9f0eccf..8294a02  master -> master
+```
+
+The hook script looks like this:
+
+```bash
+  WDIR="/home/ha/literate-ha"
+  ORG="ll-ha-config.org"
+  read oldref newref refname
+  branch=$(basename $refname)
+  rm -rf $WDIR/*
+  git --work-tree="$WDIR" checkout $branch -f
+  cd $WDIR
+  emacs --batch --eval "
+      (progn
+        (setq org-id-track-globally nil)
+        (find-file \"$ORG\")
+        (org-babel-tangle))"
+  rsync -crv --delete \
+        --exclude 'ui_lovelace_minimalist/custom_*' \
+        --exclude 'blueprints/automation/homeassistant' \
+        --exclude 'blueprints/script/homeassistant' \
+        --exclude 'blueprints/template/homeassistant' \
+        --exclude 'esphome/trash' \
+        --exclude 'esphome/.gitignore' \
+        *.yaml esphome ui_lovelace_minimalist \
+        custom_templates blueprints /mnt/ha
+```
+
+## Code organization
+
+An outline of my HA literate configuration with all sections hidden
+(folded) can be seen in @fig-top-outline:
+
+::: {#fig-screenshots layout-ncol=2}
+
+![Top-level outline](top-outline.png){#fig-top-outline}
+
+![Skeletons of configuration files](config-files.png){#fig-config-files}
+
+Screenshots of the literate configuration file in Emacs
+:::
+
+The first section (shown partially unfolded in @fig-config-files)
+contains skeletons of all YAML configuration files that are generated
+from the master file. Their names are specified in the `:tangle`
+directive in the header of each code block. Most of the remaining
+sections then contain literate configuration organized by particular
+topics such as electricity costs (see @fig-costs) or BEV charging.
+
+![Example section in a literate configuration](costs.png){#fig-costs}
+
+When searching for an existing definition of an automation, script,
+template sensor etc., I can either
+- look it up in the corresponding skeleton file by name and then
+  easily navigate to its YAML definition using the command
+  `org-babel-goto-named-src-block` (bound by default to `Ctrl-C Ctrl-v
+  g`), or
+- browse the appropriate section and find it in the text.
+
+The _IoT gadgets_ section contains descriptions of all smart
+devices (plugs, buttons, NFC tags etc.) that are in use. Other
+sections refer to them where needed, for example to document that an
+appliance is connected to or controlled by the device.
+
+## Literate configuration and the standard UI
+
+The standard web user interface of Home Assistant has been steadily
+improving and has become truly indispensable for certain kinds of
+tasks. Fortunately, dealing with configuration in the literate style
+doesn't mean that one has to avoid the standard UI as a configuration
+tool. On the contrary, both configuration approaches can be used in a
+synergy, one just has to be a little careful.
+
+For example, when creating a new automation, I often start with the
+web UI and take advantage of autocompletion and other nice features of
+the web forms and widgets. After saving it, I copy and paste it to a
+code block in Emacs, make additional edits if necessary and finally
+commit and push the result to the Git repository. Similarly, it is
+quite convenient to develop a Jinja2 template in the web UI and then
+copy the final result to a code block in the Org file.
+
+## Other goodies
+
+HTML export
+
+Generating entity IDs
+
+## Conclusions
