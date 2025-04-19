@@ -288,10 +288,17 @@ First, Emacs can help with generating unique IDs that are very important
 in Home Assistant. Whilst they aren't required everywhere, I soon learnt
 to put them where possible (automations, template sensors etc.). It may seem logical
 to use descriptive strings as unique IDs, but as soon as one needs to change
-the underlying entity the previously assigned ID could become confusing if they
-no more reflect reality. Hence, a better practice is to use opaque strings, as Home
-Assistant does internally. and Emacs can generate them easily. I use
+the underlying entity the previously assigned ID could become confusing if it
+no more reflects reality. Hence, a better practice is to use opaque strings, as Home
+Assistant does internally. Emacs can generate them with the **XXXX** function,
+which I have bound to `Ctrl-+` for easy access.
 
-HTML export
+Org mode also offers extensive possibilities for exporting the source text in
+various formats. The HTML export might be useful for publishing a literate
+configuration (or parts thereof) as a web page. I personally don't see much
+reason to publish my configuration in its entirety, as long as the resulting
+HTML doesn't support collapsible sections in the same way as the Org source does.
+I occassionally use HTML export for publishing fragments dealing with specific
+topics – an example is **HERE**.
 
 ## Conclusions
