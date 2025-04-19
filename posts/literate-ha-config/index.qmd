@@ -281,8 +281,17 @@ copy the final result to a code block in the Org file.
 
 ## Other goodies
 
-HTML export
+Apart from the main features of Org and YAML modes that were described
+above, there are a few other useful functions.
 
-Generating entity IDs
+First, Emacs can help with generating unique IDs that are very important
+in Home Assistant. Whilst they aren't required everywhere, I soon learnt
+to put them where possible (automations, template sensors etc.). It may seem logical
+to use descriptive strings as unique IDs, but as soon as one needs to change
+the underlying entity the previously assigned ID could become confusing if they
+no more reflect reality. Hence, a better practice is to use opaque strings, as Home
+Assistant does internally. and Emacs can generate them easily. I use
+
+HTML export
 
 ## Conclusions
