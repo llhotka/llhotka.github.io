@@ -179,6 +179,8 @@ repository uses a pre-receive
 Heretang is a transcript of the `git push` operation that also contains
 terminal output of the hook script:
 
+**TODO:** Annotate parts of the output 
+
 ```
 $ git push
 Enumerating objects: 5, done.
@@ -279,6 +281,8 @@ commit and push the result to the Git repository. Similarly, it is
 quite convenient to develop a Jinja2 template in the web UI and then
 copy the final result to a code block in the Org file.
 
+**TODO**: Dashboards in UI
+
 ## Other goodies
 
 Apart from the main features of Org and YAML modes that were described
@@ -302,3 +306,17 @@ I occassionally use HTML export for publishing fragments dealing with specific
 topics – an example is **HERE**.
 
 ## Conclusions
+
+The workflow for literate configuration that I described in the previous sections
+makes me feel confident that I am in control of my Home Assistant configuration.
+I can easily return to any topic even after a long break, refresh my understanding
+of how the relevant entities, automations and scripts are supposed to work together,
+and update or extend the configuration.
+
+But – is this system for everybody? Probably not. If you aren't an Emacs user yet,
+it might not be very effective to learn the editor and the Org mode just for
+the sake of configuring Home Assistant. Moreover, the literate approach requires
+certain extra effort to **....**, si it isn't for
+someone who wants to get things done quickly. Finally, I think beginners are better
+off using the Home Assistant web UI that is more intuitive. 
+
