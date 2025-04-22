@@ -313,10 +313,18 @@ I can easily return to any topic even after a long break, refresh my understandi
 of how the relevant entities, automations and scripts are supposed to work together,
 and update or extend the configuration.
 
-But – is this system for everybody? Probably not. If you aren't an Emacs user yet,
-it might not be very effective to learn the editor and the Org mode just for
-the sake of configuring Home Assistant. Moreover, the literate approach requires
-certain extra effort to **....**, si it isn't for
-someone who wants to get things done quickly. Finally, I think beginners are better
-off using the Home Assistant web UI that is more intuitive. 
+But – is this system for everybody? Objectively, it isn't. For one, if you aren't an Emacs
+user yet, it might not be very effective to learn the editor and the Org mode just
+for the sake of configuring Home Assistant. On the other hand, I do think that
+the Org mode is so powerful and useful that it is a reason good enough for starting
+with Emacs in the first place.
+
+Second, the literate approach probably isn't for someone who wants to get things done
+quickly. A literate configuration needn't necessarily be a piece of art but it still
+requires certain extra effort and a bit of careful planning. For complex configurations, though,
+this overhead will pay off in a long term.
+
+And finally, I think beginners may be better off using the Home Assistant native UI that
+is more intuitive and provides contextual help in many places. It is possible to migrate
+configuration to the literate style at any later time.
 
