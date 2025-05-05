@@ -9,8 +9,631 @@
 <link>https://blog.lhotka.name/</link>
 <atom:link href="https://blog.lhotka.name/index.xml" rel="self" type="application/rss+xml"/>
 <description>This is Ladislav Lhotka&#39;s personal blog.</description>
-<generator>quarto-1.5.57</generator>
-<lastBuildDate>Mon, 28 Oct 2024 23:00:00 GMT</lastBuildDate>
+<generator>quarto-1.7.29</generator>
+<lastBuildDate>Sun, 04 May 2025 22:00:00 GMT</lastBuildDate>
+<item>
+  <title>Literate Home Assistant Configuration</title>
+  <dc:creator>Ladislav Lhotka</dc:creator>
+  <link>https://blog.lhotka.name/posts/literate-ha-config/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p><a href="https://www.home-assistant.io">Home Assistant</a> is a leading open-source platform for home automation. My first experiments with it date back to 2022, and my evolution path since then might have been, I guess, quite typical. I started small but kept adding new smart devices, automations and all that stuff. Before long I realized that my configuration has become complex and unwieldy. I found it rather difficult to work with definitions scattered across the front-end UI pages and/or YAML files, despite all the great improvements to the user interface that have been introduced recently.</p>
+<p>I spent some time considering my requirements and came up with the following list:</p>
+<ol type="1">
+<li>Source code management applied to all YAML definitions, perhaps except trivial ones.</li>
+<li>Related definitions across all categories, such as automations, scripts or template sensors, should be kept together.</li>
+<li>It should be possible to document definitions well beyond what’s reasonable to have as object descriptions.</li>
+<li>I want to keep an archive of scripts, template sensors etc. that needn’t be necessarily configured in my Home Assistant server.</li>
+</ol>
+<p>As it turned out, with the toolset that I’ve been using for decades, especially <a href="https://git-scm.com">Git</a>, <a href="https://www.gnu.org/software/emacs">Emacs</a> and <a href="https://orgmode.org">Org mode</a>, it was possible to achieve the above goals pretty easily. I realize that my solution, which I call <em>literate configuration</em>, isn’t for everybody but, after two years of almost daily usage, I must say that it works almost perfectly and has already saved me a lot of time and trouble.</p>
+</section>
+<section id="code-blocks-and-yaml-in-emacs" class="level2">
+<h2 class="anchored" data-anchor-id="code-blocks-and-yaml-in-emacs">Code blocks and YAML in Emacs</h2>
+<p>One of the less frequently used features of Org mode is the ability to intersperse text with code blocks enclosed in <code>#+begin_src &lt;language&gt;</code> and <code>#+end_src</code>, where <code>&lt;language&gt;</code> identifies the programming language in which the code block is written. If such a block is opened for editing (the default key combination for this is <code>Ctrl-C '</code>), Emacs activates the editing mode that’s available for the given language, and then inserts the edited code back to the Org source file.</p>
+<p>Even though Org supports all common languages, YAML isn’t among them – maybe because it really isn’t a programming language. It was however quite easy to implement support for YAML code blocks by modifying the provided Emacs Lisp <a href="https://git.sr.ht/~bzg/worg/tree/master/item/org-contrib/babel/ob-template.el">template</a>. The resulting module <code>ob-yaml.el</code> is available on <a href="https://github.com/llhotka/ob-yaml">GitHub</a> and can be loaded in Emacs <a href="https://www.gnu.org/software/emacs/manual/html_node/eintr/Loading-Files.html">as usual</a>.</p>
+</section>
+<section id="literate-programming" class="level2">
+<h2 class="anchored" data-anchor-id="literate-programming">Literate programming</h2>
+<p>The term <a href="https://en.wikipedia.org/wiki/Literate_programming">literate programming</a> was coined by Donald Knuth in 1984 as a way for developing computer programs as pieces of literature that humans can easily read and enjoy. He then used this programming method for developing the TeX typesetting system that many of us still use. The Org mode uses the <a href="https://www.cs.tufts.edu/~nr/noweb">noweb</a> implementation of literate programming. Two of its features are important for our purposes:</p>
+<ul>
+<li>Designated code blocks can be “tangled“ – extracted from the Org source and pasted sequentially into one or more files.</li>
+<li>A named code block can be referred to from other code blocks by using its name enclosed in <code>&lt;&lt;</code> and <code>&gt;&gt;</code>. The code from the referred block is then inserted in the referring block when the latter is tangled.</li>
+</ul>
+<p>The former approach is simpler and useful for putting together chunks that are at the top level of YAML hierarchy, for example</p>
+<div class="sourceCode" id="cb1" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#+begin_src yaml :tangle customizations.yaml</span></span>
+<span id="cb1-2"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sensor.ecovolter_total_energy</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb1-3"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">device_class</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> energy</span></span>
+<span id="cb1-4"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#+end_src</span></span></code></pre></div>
+<p>Chunks with the same value of the <code>:tangle</code> parameter are collected, in the order as they appear in the source Org file, in the specified file (<code>customizations.yaml</code> for the example above).</p>
+<p>YAML chunks to be placed somewhere deeper in the hierarchy can be handled using the second approach (noweb references). One has to write a skeleton configuration file, and then refer to individual chunks from it. For instance, the configuration file for <a href="https://www.home-assistant.io/integrations/rest">RESTful</a> integration look like this (abridged):</p>
+<div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#+begin_src yaml :tangle rest.yaml</span></span>
+<span id="cb2-2"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">resource</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> !secret ecovolter_get_url</span></span>
+<span id="cb2-3"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">scan_interval</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">5</span></span>
+<span id="cb2-4"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">verify_ssl</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">true</span></span>
+<span id="cb2-5"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">headers</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb2-6"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">X-API-KEY</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> !secret ecovolter_api_key</span></span>
+<span id="cb2-7"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">sensor</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb2-8"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      &lt;&lt;sensor.ecovolter_boost_current&gt;&gt;</span></span>
+<span id="cb2-9"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      &lt;&lt;sensor.ecovolter_target_current&gt;&gt;</span></span>
+<span id="cb2-10"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      &lt;&lt;sensor.ecovolter_boost_time&gt;&gt;</span></span>
+<span id="cb2-11"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      ...</span></span>
+<span id="cb2-12"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">binary_sensor</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb2-13"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      &lt;&lt;binary_sensor.ecovolter_single_phase&gt;&gt;</span></span>
+<span id="cb2-14"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      &lt;&lt;binary_sensor.ecovolter_charging_enabled&gt;&gt;</span></span>
+<span id="cb2-15"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      ...</span></span>
+<span id="cb2-16"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#+end_src</span></span></code></pre></div>
+<p>YAML definitions of all sensors or binary sensors may appear anywhere in the source Org file. Each has to be designated by the same name that was used in the corresponding noweb reference (between the chevrons <code>&lt;&lt;</code> and <code>&gt;&gt;</code>). Here is an example:</p>
+<div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#+NAME: sensor.ecovolter_target_current</span></span>
+<span id="cb3-2"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#+begin_src yaml</span></span>
+<span id="cb3-3"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">name</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"EcoVolter target current"</span></span>
+<span id="cb3-4"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">unique_id</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ccbfbac7-8eb3-4bb9-9951-4d41acfd5a1e"</span></span>
+<span id="cb3-5"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">icon</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"mdi:car-electric"</span></span>
+<span id="cb3-6"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">value_template</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"{{ value_json.targetCurrent }}"</span></span>
+<span id="cb3-7"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">unit_of_measurement</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"A"</span></span>
+<span id="cb3-8"><span class="co" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">#+end_src</span></span></code></pre></div>
+<p>When tangling the output YAML file, Emacs observes the indentation level of the noweb reference and indents the included chunk accordingly. The chunk itself thus needn’t be indented within it code block, which is very handy.</p>
+<p>The noweb references may use any names, as long as they are unique, but I found it very convenient to use complete HA entity names because one can then immediately look up the entity in the graphical UI.</p>
+</section>
+<section id="deployment" class="level2">
+<h2 class="anchored" data-anchor-id="deployment">Deployment</h2>
+<p>It’s nice to be able to generate all YAML configuration files from a single Org source, but by itself it isn’t sufficient. In order to make this system practical, I had to find a way for automating the process of deploying the generated files on my Home Assistant server. After some experimenting I ended up with the procedure described below. There can certainly be other ways of achieving the same but here I was able to leverage functionality already available in Git and Home Assistant.</p>
+<p>The procedure consists of the following steps:</p>
+<ol type="1">
+<li>Edit the source Org file Emacs.</li>
+<li>Review, stage and commit the changes to Git.</li>
+<li>Push the new commit(s) to a remote repository on my home network server.</li>
+<li>Activate the new configuration on the Home Assistant server, usually via quick reload.</li>
+</ol>
+<p>Most of of the underlying magic happens in step&nbsp;3: the remote Git repository uses a pre-receive <a href="https://git-scm.com/docs/githooks">hook</a> that does the following:</p>
+<ul>
+<li>check out the working tree on the remote server</li>
+<li>use Emacs in the batch mode on it to tangle all YAML configuration files (still inside the working tree)</li>
+<li>use <a href="https://rsync.samba.org">rsync</a> to synchronize modified YAML files with the <code>config</code> directory on my HA server.</li>
+</ul>
+<p>Below is a transcript of the <code>git push</code> operation that also contains terminal output of the hook script (prefixed with <code>remote:</code>). A useful detail in the output of <strong>rsync</strong> is the list of YAML configuration files that have been updated – here it is just <code>automations.yaml</code>.</p>
+<div class="sourceCode" id="cb4" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">$</span> git push</span>
+<span id="cb4-2"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">Enumerating</span> objects: 5, done.</span>
+<span id="cb4-3"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">Counting</span> objects: 100% <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">(</span><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">5/5</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">)</span><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">,</span> done.</span>
+<span id="cb4-4"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">Delta</span> compression using up to 8 threads</span>
+<span id="cb4-5"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">Compressing</span> objects: 100% <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">(</span><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">3/3</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">)</span><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">,</span> done.</span>
+<span id="cb4-6"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">Writing</span> objects: 100% <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">(</span><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">3/3</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">)</span><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">,</span> 343 bytes <span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">|</span> <span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">343.00</span> KiB/s, done.</span>
+<span id="cb4-7"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">Total</span> 3 <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">(</span><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">delta</span> 2<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">)</span><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">,</span> reused 0 <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">(</span><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">delta</span> 0<span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">)</span><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">,</span> pack-reused 0</span>
+<span id="cb4-8"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">remote:</span> Already on <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'master'</span></span>
+<span id="cb4-9"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">remote:</span> Loading /etc/emacs/site-start.d/00debian.el <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">(</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">source</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">)</span><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">...</span></span>
+<span id="cb4-10"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">remote:</span> Loading /etc/emacs/site-start.d/50autoconf.el <span class="er" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">(</span><span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">source</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">)</span><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">...</span></span>
+<span id="cb4-11"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">remote:</span> Tangled 36 code blocks from ll-ha-config.org</span>
+<span id="cb4-12"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">remote:</span> sending incremental file list</span>
+<span id="cb4-13"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">remote:</span> automations.yaml</span>
+<span id="cb4-14"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">remote:</span></span>
+<span id="cb4-15"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">remote:</span> sent 45,826 bytes  received 47 bytes  30,582.00 bytes/sec</span>
+<span id="cb4-16"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">remote:</span> total size is 127,670  speedup is 2.78</span>
+<span id="cb4-17"><span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">To</span> trail.lhotka.name:Depot/hazard</span>
+<span id="cb4-18">   <span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">9f0eccf..8294a02</span>  master <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">&gt;</span> master</span></code></pre></div>
+<p>The hook script looks like this:</p>
+<div class="sourceCode" id="cb5" style="background: #f1f3f5;"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1">  <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">WDIR</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"/home/ha/literate-ha"</span></span>
+<span id="cb5-2">  <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">ORG</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"ll-ha-config.org"</span></span>
+<span id="cb5-3">  <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">read</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">oldref</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">newref</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">refname</span></span>
+<span id="cb5-4">  <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">branch</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$(</span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">basename</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$refname)</span></span>
+<span id="cb5-5">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rm</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-rf</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$WDIR</span>/<span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">*</span></span>
+<span id="cb5-6">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">git</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--work-tree</span><span class="op" style="color: #5E5E5E;
+background-color: null;
+font-style: inherit;">=</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$WDIR</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span> checkout <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$branch</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-f</span></span>
+<span id="cb5-7">  <span class="bu" style="color: null;
+background-color: null;
+font-style: inherit;">cd</span> <span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$WDIR</span></span>
+<span id="cb5-8">  <span class="ex" style="color: null;
+background-color: null;
+font-style: inherit;">emacs</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--batch</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--eval</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"</span></span>
+<span id="cb5-9"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">      (progn</span></span>
+<span id="cb5-10"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">        (setq org-id-track-globally nil)</span></span>
+<span id="cb5-11"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">        (find-file </span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\"</span><span class="va" style="color: #111111;
+background-color: null;
+font-style: inherit;">$ORG</span><span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\"</span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">)</span></span>
+<span id="cb5-12"><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">        (org-babel-tangle))"</span></span>
+<span id="cb5-13">  <span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rsync</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">-crv</span> <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--delete</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb5-14">        <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--exclude</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'ui_lovelace_minimalist/custom_*'</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb5-15">        <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--exclude</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'blueprints/automation/homeassistant'</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb5-16">        <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--exclude</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'blueprints/script/homeassistant'</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb5-17">        <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--exclude</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'blueprints/template/homeassistant'</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb5-18">        <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--exclude</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'esphome/trash'</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb5-19">        <span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">--exclude</span> <span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">'esphome/.gitignore'</span> <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb5-20">        <span class="pp" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">*</span>.yaml esphome ui_lovelace_minimalist <span class="dt" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">\</span></span>
+<span id="cb5-21">        custom_templates blueprints /mnt/ha</span></code></pre></div>
+</section>
+<section id="code-organization" class="level2">
+<h2 class="anchored" data-anchor-id="code-organization">Code organization</h2>
+<p>An outline of my HA literate configuration with all sections folded (collapsed) can be seen in Figure&nbsp;1 (a):</p>
+<div id="fig-screenshots" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-screenshots-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-screenshots" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-top-outline" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-top-outline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://blog.lhotka.name/posts/literate-ha-config/top-outline.png" class="img-fluid figure-img" data-ref-parent="fig-screenshots">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-top-outline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) Top-level outline
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-screenshots" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-config-files" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-config-files-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://blog.lhotka.name/posts/literate-ha-config/config-files.png" class="img-fluid figure-img" data-ref-parent="fig-screenshots">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-config-files-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) Skeletons of configuration files
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-screenshots-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Screenshots of the literate configuration file in Emacs
+</figcaption>
+</figure>
+</div>
+<p>The first section (shown partially unfolded in Figure&nbsp;1 (b)) contains skeletons of most YAML configuration files that are generated from the master file. Their names are specified in the <code>:tangle</code> directive in the header of each code block. Most of the remaining sections then contain literate configuration organized by particular topics such as electricity costs (see Figure&nbsp;2) or BEV charging.</p>
+<div id="fig-costs" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-costs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://blog.lhotka.name/posts/literate-ha-config/costs.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-costs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Example section in a literate configuration
+</figcaption>
+</figure>
+</div>
+<p>When searching for an existing definition of an automation, script, template sensor etc., I can either</p>
+<ul>
+<li><p>look it up in the corresponding skeleton file by name and then easily navigate to its YAML definition using the command <code>org-babel-goto-named-src-block</code> (bound by default to <code>Ctrl-C Ctrl-v g</code>), or</p></li>
+<li><p>browse the appropriate section and find it in the text.</p></li>
+</ul>
+<p>The <em>IoT gadgets</em> section contains descriptions of all smart devices (plugs, buttons, NFC tags etc.) that are in use. Other sections refer to them where needed, for example to document that an appliance is connected to or controlled by the device.</p>
+</section>
+<section id="literate-configuration-and-the-standard-ui" class="level2">
+<h2 class="anchored" data-anchor-id="literate-configuration-and-the-standard-ui">Literate configuration and the standard UI</h2>
+<p>The standard web user interface of Home Assistant has been steadily improving and has become truly indispensable for certain kinds of tasks. Fortunately, dealing with configuration in the literate style (mostly) doesn’t mean that one has to avoid the standard UI as a configuration tool. On the contrary, both configuration approaches can be used in a synergy, one just has to be a little careful.</p>
+<p>For example, when creating a new automation, I often start with the web UI and take advantage of autocompletion and other nice features of the web forms and widgets. After saving it, I copy and paste it to a code block in Emacs, make additional edits if necessary and finally commit and push the result to the Git repository. Similarly, it is quite convenient to develop a Jinja2 template in the web UI and then copy the final result to a code block in the Org file.</p>
+<p>When it comes to custom dashboards, I originally started with <a href="https://github.com/UI-Lovelace-Minimalist/UI">UI-Lovelace-Minimalist</a> and had all its configuration in my Org file. It helped me a lot to keep the set of dashboards organized but it was still quite tedious to manage the entire user interface in source code. Not long ago I realized that I could no more ignore the vast improvements in the standard (Lovelace) dashboards and decided to migrate. Regrettably, there is this strict dichotomy of UI versus YAML modes for dashboard configuration. I chose the former because it is very convenient to lay out and update the dashboards via the graphical interface. Nonetheless, there are still situations where it would be more efficient to work with YAML code and literate configuration. In particular, I have separate dashboards for desktops, mobile devices and wall panels, so I quite often need to reuse same cards in different places. I can either configure them repeatedly via the UI, which is a drudgery for all but trivial cards, or copy and paste YAML code between web forms, which is difficult and error prone. I would thus very much appreciate to be able to work with YAML code and via UI interchangeably, as it is possible for scripts and automations.</p>
+<p>I do keep one dashboard in the YAML mode and work with it in the literate configuration style. It contains my collection of <a href="https://github.com/RomRider/apexcharts-card">ApexCharts</a>. The reason for this exception is twofold: first, ApexCharts have to be configured completely in YAML anyway, and, second, it is much easier to copy fragments of YAML code in Emacs (with adjusted indentation, if necessary) and paste them to other dashboards in UI mode.</p>
+</section>
+<section id="other-goodies" class="level2">
+<h2 class="anchored" data-anchor-id="other-goodies">Other goodies</h2>
+<p>Apart from the main features of Org and YAML modes that were described above, there are a few other useful functions.</p>
+<p>First, Emacs can help with generating unique IDs that are very important in Home Assistant. Whilst they aren’t required everywhere, I soon learnt to put them where possible (automations, template sensors etc.). It may seem logical to use descriptive strings as unique IDs, but as soon as one needs to change the underlying entity the previously assigned ID could become confusing if it no more reflects reality. Hence, a better practice is to use opaque strings, as Home Assistant does internally. Emacs can generate them with the <strong>uuidgen</strong> function, which I have bound to <code>Ctrl-+</code> for easy access.</p>
+<p>Org mode also offers extensive possibilities for exporting the source text in various formats. The HTML export might be useful for publishing a literate configuration (or parts thereof) as a web page. I personally don’t see much reason to publish my configuration in its entirety, as long as the resulting HTML doesn’t support collapsible sections in the same way as the Org source does. I occassionally use HTML export for publishing fragments dealing with specific topics. It is also very useful that GitHub now supports the Org mode syntax directly, so one can view nicely rendered literate configuration files out of the box. An example is <a href="https://github.com/llhotka/mybox-ha-mqtt/blob/main/mybox-ha-mqtt.org">here</a>.</p>
+</section>
+<section id="conclusions" class="level2">
+<h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>
+<p>The workflow for literate configuration that I described in the previous sections makes me feel confident that I am in control of my Home Assistant configuration. I can easily return to any topic even after a long break, refresh my understanding of how the relevant entities, automations and scripts are supposed to work together, and update or extend the configuration.</p>
+<p>But – is this system for everybody? Objectively, it isn’t. For one, if you aren’t an Emacs user yet, it might not be very effective to learn the editor and the Org mode just for the sake of configuring Home Assistant. On the other hand, I do think that the Org mode is so powerful and useful that it is a reason good enough for starting with Emacs in the first place.</p>
+<p>Second, the literate approach probably isn’t for someone who wants to get things done quickly. A literate configuration needn’t necessarily be a piece of art but it still requires certain extra effort and a bit of careful planning. For complex configurations, though, this overhead will pay off in a long term.</p>
+<p>And finally, I think beginners may be better off using the Home Assistant’s native UI that is more intuitive and provides contextual help in many places. It is possible to migrate configuration to the literate style at any later time.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>Org mode</category>
+  <category>literate programming</category>
+  <category>Home Assistant</category>
+  <guid>https://blog.lhotka.name/posts/literate-ha-config/</guid>
+  <pubDate>Sun, 04 May 2025 22:00:00 GMT</pubDate>
+  <media:content url="https://blog.lhotka.name/posts/literate-ha-config/unicorn-ha-logo.svg" medium="image" type="image/svg+xml"/>
+</item>
 <item>
   <title>MyBox and Home Assistant</title>
   <dc:creator>Ladislav Lhotka</dc:creator>
@@ -22,8 +645,8 @@
 
 <p><a href="https://mybox.eco/en/produkty-kategorie/nabijeci-stanice/">MyBox</a> is a line of sleek and smart BEV charging stations suitable for both home and public deployment. This post describes the steps necessary for integrating their Plus model (AC) into <a href="https://www.home-assistant.io">Home Assistant</a> so that the wallbox can be monitored and controlled from this popular smart home platform.</p>
 <p>I use the MQTT messaging protocol for getting data from and sending commands to the wallbox. Modbus TCP could be another option in the future but, while listed in the <a href="https://mybox.eco/wp-content/uploads/2023/11/mybox_plus_datasheet_2str.pdf">datasheet</a>, it is currently reserved only for internal use. According to the vendor, it should be made available to customers “soon”.</p>
-<section id="mybox-plus" class="level1">
-<h1>MyBox Plus</h1>
+<section id="mybox-plus" class="level2">
+<h2 class="anchored" data-anchor-id="mybox-plus">MyBox Plus</h2>
 <p>Why did I choose the MyBox platform in the first place? Well, although it is more expensive than some of the competing products, it offers a lot of useful functionality. Yet even more important for me was that the company seems to be aiming at technological innovations, so hopefully more exciting functionality will come later through software and/or hardware upgrades. One feature that I’d certainly love to try is V2H (vehicle-to-home) or V2G (vehicle-to-grid) as per <a href="https://www.switch-ev.com/blog/what-is-iso-15118">ISO 15118</a>.</p>
 <p>The low-end <a href="https://mybox.eco/produkt/mybox-home">MyBox Home</a> model would most likely suffice for our home BEV charging purposes. After some hesitation, I decided to go for the <a href="https://mybox.eco/produkt/mybox-plus">Plus</a> model, mainly because of its modularity. Should any hardware component need to be replaced or upgraded, it will be much easier and cheaper to do with a modular design.</p>
 <div id="fig-our-mybox" class="quarto-layout-panel">
@@ -64,13 +687,13 @@ Figure&nbsp;1: MyBox Plus wallbox and mobile application
 <p>On the other hand, since the wallbox was going to be installed in a locked garage, we didn’t need the optional RFID card reader. For the same reason I chose the tethered variant (with a fixed Type&nbsp;2 cable), as it is much more convenient to simply take the cable off the holder and plug it into the car.</p>
 <p>Finally, I didn’t order the <a href="https://mybox.eco/produkt/mybox-ac-sensor-modul-dynamickeho-rizeni-vykonu-nabijeci-stanice">AC Sensor</a> that can be used for adjusting wallbox charging power dynamically according to the current consumption of the household. My plan has been to implement such a control mechanism in Home Assistant, if it’s necessary at all.</p>
 </section>
-<section id="preliminaries" class="level1">
-<h1>Preliminaries</h1>
+<section id="preliminaries" class="level2">
+<h2 class="anchored" data-anchor-id="preliminaries">Preliminaries</h2>
 <p>In order to use MQTT in Home Assistant, <a href="https://www.home-assistant.io/integrations/mqtt/">MQTT integration</a> needs to be added, and an <em>MQTT broker</em> also has to be set up. Actually, the latter is one of the extra functions implemented in the MyBox software, I haven’t tried it though. A natural choice for Home Assistant users is to use the <a href="https://github.com/home-assistant/addons/blob/master/mosquitto/DOCS.md">Mosquitto broker</a> add-on. Its installation and configuration is pretty straightforward, one just has to create a special Home Assistant account &amp; password for use with the broker.</p>
 <p>Another tool that I found quite handy is <a href="http://mqtt-explorer.com">MQTT Explorer</a>. It is an open-source MQTT client that makes it very easy (apart from other functions) to inspect MQTT data hierarchy. Some examples will be given below. MQTT Explorer is available for Windows, MacOS and Linux.</p>
 </section>
-<section id="enabling-mqtt-in-mybox" class="level1">
-<h1>Enabling MQTT in MyBox</h1>
+<section id="enabling-mqtt-in-mybox" class="level2">
+<h2 class="anchored" data-anchor-id="enabling-mqtt-in-mybox">Enabling MQTT in MyBox</h2>
 <p>The local MQTT function isn’t turned on by default. To configure it, I first needed to obtain access to the <a href="https://cloud.mybox.pro">MyBox cloud portal</a>, where the configuration of the wallbox can be viewed and changed. I received the necessary credentials directly from the technician who did the wallbox installation.</p>
 <p>After logging into the portal and opening the device configuration, I scrolled down to the <em>local_mqtt</em> section, enabled it and filled in the parameters of my MQTT broker. The configured web form looks like this:</p>
 <div id="fig-mqtt-config" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -86,8 +709,8 @@ Figure&nbsp;2: MyBox portal
 <p>The two items that are masked out are the user name and password chosen for the Mosquitto broker user in Home Assistant. The <code>local-mqtt-host</code> parameter is the IP address of my Home Assistant server with Mosquitto broker. It is also necessary to configure the MQTT root topic. I chose <code>charger</code>, but anything reasonable can be used instead.</p>
 <p>In my case, the Home Assistant server can be accessed only from the local network, so I don’t need encryption and certificates.</p>
 </section>
-<section id="verifying-the-communication" class="level1">
-<h1>Verifying the communication</h1>
+<section id="verifying-the-communication" class="level2">
+<h2 class="anchored" data-anchor-id="verifying-the-communication">Verifying the communication</h2>
 <p>From the configuration page of the MQTT integration in Home Assistant, I was able to view and change wallbox parameters via MQTT. For example, in the box <strong>Listen to a topic</strong> I could specify the topic</p>
 <pre><code>charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/max-charge-current</code></pre>
 <p>and after pressing the <strong>START LISTENING</strong> button, the value of maximum charge current immediately popped up as seen in Figure&nbsp;3 (a).</p>
@@ -154,8 +777,8 @@ Note
 </div>
 <p>Similarly, I was able to change a writable parameter by sending a new value with <code>/set</code> appended to the corresponding topic name. An example for the <code>max-charge-current</code> parameter is in Figure&nbsp;3 (b). In the MyBox mobile app (Figure&nbsp;1 (b)) we can immediately verify that indeed the maximum charge current is now 6.</p>
 </section>
-<section id="configuring-home-assistant-sensors-and-scripts" class="level1">
-<h1>Configuring Home Assistant sensors and scripts</h1>
+<section id="configuring-home-assistant-sensors-and-scripts" class="level2">
+<h2 class="anchored" data-anchor-id="configuring-home-assistant-sensors-and-scripts">Configuring Home Assistant sensors and scripts</h2>
 <p>With MQTT properly working, I used MQTT Explorer for connecting to the Mosquitto broker running on my Home Assistant server, and started browsing the MQTT tree of the wallbox. I then selected topics from the following two subtrees (both with the <code>charger/e5qb-ekgg-48wz-o07w/</code> prefix) for defining Home Assistant sensors and scripts, namely</p>
 <ul>
 <li><p><code>ac-module-1-ac-module</code> – status and charging-related settings of the wallbox, see Figure&nbsp;4 (a).</p></li>
@@ -664,10 +1287,10 @@ font-style: inherit;">&gt;-</span></span>
 </div>
 <p>Complete contents of configuration files that I currently use for MyBox can be downloaded from <a href="https://github.com/llhotka/mybox-ha-mqtt">GitHub</a>.</p>
 </section>
-<section id="conclusions" class="level1">
-<h1>Conclusions</h1>
+<section id="conclusions" class="level2">
+<h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>
 <p>MyBox Plus is a nice piece of hardware with rich software functionality. I’ve been using it regularly for overnight charging at 11 kW (the wallbox supports up to 22 kW) with no issues whatsoever.</p>
-<p>My only complaint is that I cannot enforce single-phase operation: if a car has has a three-phase onboard charger, then MyBox will feed it over three phases. This doesn’t look like a limitation, but it prevents me from using MyBox in the mode of using only excess energy from our photovoltaic system – its minimum charging power is 4.1&nbsp;kW (3&nbsp;×&nbsp;6&nbsp;A), which is very close to the peak PV production at optimal conditions, so there is essentially no space for power regulation. Therefore, I ended up using my older <a href="https://ecovolter.com/en">EcoVolter</a> portable wallbox for excess-energy charging because it can be switched to single-phase operation and thus go with the charging power down to 1.4&nbsp;kW (1&nbsp;×&nbsp;6&nbsp;A). I plan to write another blog post about integrating this wallbox to Home Assistant and using it in the excess-energy mode.</p>
+<p>My only complaint is that I cannot enforce single-phase operation: if a car has a three-phase onboard charger, then MyBox will feed it over three phases. This doesn’t look like a limitation, but it prevents me from using MyBox in the mode of using only excess energy from our photovoltaic system – its minimum charging power is 4.1&nbsp;kW (3&nbsp;×&nbsp;6&nbsp;A), which is very close to the peak PV production at optimal conditions, so there is essentially no space for power regulation. Therefore, I ended up using my older <a href="https://ecovolter.com/en">EcoVolter</a> portable wallbox for excess-energy charging because it can be switched to single-phase operation and thus go with the charging power down to 1.4&nbsp;kW (1&nbsp;×&nbsp;6&nbsp;A). I plan to write another blog post about integrating this wallbox to Home Assistant and using it in the excess-energy mode.</p>
 <p>But back to MyBox: integrating it to Home Assistant via MQTT and YAML configuration turned out to be pretty easy and perfectly sufficient for our purposes. It might make sense to write a full-fledged HA integration in Python, but I guess I am not in the right position to do it, as I don’t have some of the interesting hardware modules (RFID card reader, AC sensor) and don’t use any security-related functions. Potential developers of such an integration would also appreciate more extensive technical documentation, which is currently rather scarce.</p>
 <p><strong>Acknowledgment:</strong> I am grateful to Tomáš Kada, product specialist at MyBox, who helped me with setting up MQTT and promptly responded to all questions that I had.</p>
 

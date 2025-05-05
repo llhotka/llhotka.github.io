@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.29">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Ladislav Lhotka">
+<meta name="dcterms.date" content="2025-05-05">
+<meta name="description" content="Larger instalations of Home Assistant smart-home networks usually lead to a fairly complex configuration that is difficult to develop and maintain. This blog post describes my system of HA YAML code management, documentation and deployment based on Git, Emacs editor with its Org mode, an principles of literate programming.">
+
+<title>Literate Home Assistant Configuration – Blog Matrix</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../images/logo.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-535dc09e67237f5bba11d1600e996bc2.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-bd55e5fa0993058969db256aacb56745.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Literate Home Assistant Configuration – Blog Matrix">
+<meta property="og:description" content="Larger instalations of Home Assistant smart-home networks usually lead to a fairly complex configuration that is difficult to develop and maintain. This blog post describes my system of HA YAML code management, documentation and deployment based on Git, Emacs editor with its Org mode, an principles of literate programming.">
+<meta property="og:image" content="https://blog.lhotka.name/posts/literate-ha-config/unicorn-ha-logo.svg">
+<meta property="og:site_name" content="Blog Matrix">
+<meta name="twitter:title" content="Literate Home Assistant Configuration – Blog Matrix">
+<meta name="twitter:description" content="Larger instalations of Home Assistant smart-home networks usually lead to a fairly complex configuration that is difficult to develop and maintain. This blog post describes my system of HA YAML code management, documentation and deployment based on Git, Emacs editor with its Org mode, an principles of literate programming.">
+<meta name="twitter:image" content="https://blog.lhotka.name/posts/literate-ha-config/unicorn-ha-logo.svg">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-fixed fullcontent quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../images/logo.svg" alt="" class="navbar-logo">
+    </a>
+    <a class="navbar-brand" href="../../index.html">
+    <span class="navbar-title">Blog Matrix</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../../about.html"> 
+<span class="menu-text">About</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../../archive.html"> 
+<span class="menu-text">Archive</span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/llhotka"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://twitter.com/LadislavLhotka"> <i class="bi bi-twitter-x" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Literate Home Assistant Configuration</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">Org mode</div>
+    <div class="quarto-category">literate programming</div>
+    <div class="quarto-category">Home Assistant</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    Larger instalations of Home Assistant smart-home networks usually lead to a fairly complex configuration that is difficult to develop and maintain. This blog post describes my system of HA YAML code management, documentation and deployment based on Git, Emacs editor with its Org mode, an principles of literate programming.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Ladislav Lhotka </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">May 5, 2025</p>
+    </div>
+  </div>
+  
+    <div>
+    <div class="quarto-title-meta-heading">Modified</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date-modified">May 5, 2025</p>
+    </div>
+  </div>
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p><a href="https://www.home-assistant.io">Home Assistant</a> is a leading open-source platform for home automation. My first experiments with it date back to 2022, and my evolution path since then might have been, I guess, quite typical. I started small but kept adding new smart devices, automations and all that stuff. Before long I realized that my configuration has become complex and unwieldy. I found it rather difficult to work with definitions scattered across the front-end UI pages and/or YAML files, despite all the great improvements to the user interface that have been introduced recently.</p>
+<p>I spent some time considering my requirements and came up with the following list:</p>
+<ol type="1">
+<li>Source code management applied to all YAML definitions, perhaps except trivial ones.</li>
+<li>Related definitions across all categories, such as automations, scripts or template sensors, should be kept together.</li>
+<li>It should be possible to document definitions well beyond what’s reasonable to have as object descriptions.</li>
+<li>I want to keep an archive of scripts, template sensors etc. that needn’t be necessarily configured in my Home Assistant server.</li>
+</ol>
+<p>As it turned out, with the toolset that I’ve been using for decades, especially <a href="https://git-scm.com">Git</a>, <a href="https://www.gnu.org/software/emacs">Emacs</a> and <a href="https://orgmode.org">Org mode</a>, it was possible to achieve the above goals pretty easily. I realize that my solution, which I call <em>literate configuration</em>, isn’t for everybody but, after two years of almost daily usage, I must say that it works almost perfectly and has already saved me a lot of time and trouble.</p>
+</section>
+<section id="code-blocks-and-yaml-in-emacs" class="level2">
+<h2 class="anchored" data-anchor-id="code-blocks-and-yaml-in-emacs">Code blocks and YAML in Emacs</h2>
+<p>One of the less frequently used features of Org mode is the ability to intersperse text with code blocks enclosed in <code>#+begin_src &lt;language&gt;</code> and <code>#+end_src</code>, where <code>&lt;language&gt;</code> identifies the programming language in which the code block is written. If such a block is opened for editing (the default key combination for this is <code>Ctrl-C '</code>), Emacs activates the editing mode that’s available for the given language, and then inserts the edited code back to the Org source file.</p>
+<p>Even though Org supports all common languages, YAML isn’t among them – maybe because it really isn’t a programming language. It was however quite easy to implement support for YAML code blocks by modifying the provided Emacs Lisp <a href="https://git.sr.ht/~bzg/worg/tree/master/item/org-contrib/babel/ob-template.el">template</a>. The resulting module <code>ob-yaml.el</code> is available on <a href="https://github.com/llhotka/ob-yaml">GitHub</a> and can be loaded in Emacs <a href="https://www.gnu.org/software/emacs/manual/html_node/eintr/Loading-Files.html">as usual</a>.</p>
+</section>
+<section id="literate-programming" class="level2">
+<h2 class="anchored" data-anchor-id="literate-programming">Literate programming</h2>
+<p>The term <a href="https://en.wikipedia.org/wiki/Literate_programming">literate programming</a> was coined by Donald Knuth in 1984 as a way for developing computer programs as pieces of literature that humans can easily read and enjoy. He then used this programming method for developing the TeX typesetting system that many of us still use. The Org mode uses the <a href="https://www.cs.tufts.edu/~nr/noweb">noweb</a> implementation of literate programming. Two of its features are important for our purposes:</p>
+<ul>
+<li>Designated code blocks can be “tangled“ – extracted from the Org source and pasted sequentially into one or more files.</li>
+<li>A named code block can be referred to from other code blocks by using its name enclosed in <code>&lt;&lt;</code> and <code>&gt;&gt;</code>. The code from the referred block is then inserted in the referring block when the latter is tangled.</li>
+</ul>
+<p>The former approach is simpler and useful for putting together chunks that are at the top level of YAML hierarchy, for example</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#+begin_src yaml :tangle customizations.yaml</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="fu">sensor.ecovolter_total_energy</span><span class="kw">:</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">device_class</span><span class="kw">:</span><span class="at"> energy</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#+end_src</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>Chunks with the same value of the <code>:tangle</code> parameter are collected, in the order as they appear in the source Org file, in the specified file (<code>customizations.yaml</code> for the example above).</p>
+<p>YAML chunks to be placed somewhere deeper in the hierarchy can be handled using the second approach (noweb references). One has to write a skeleton configuration file, and then refer to individual chunks from it. For instance, the configuration file for <a href="https://www.home-assistant.io/integrations/rest">RESTful</a> integration look like this (abridged):</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#+begin_src yaml :tangle rest.yaml</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">resource</span><span class="kw">:</span><span class="at"> !secret ecovolter_get_url</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">scan_interval</span><span class="kw">:</span><span class="at"> </span><span class="dv">5</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">verify_ssl</span><span class="kw">:</span><span class="at"> </span><span class="ch">true</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">headers</span><span class="kw">:</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="fu">X-API-KEY</span><span class="kw">:</span><span class="at"> !secret ecovolter_api_key</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">sensor</span><span class="kw">:</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="at">      &lt;&lt;sensor.ecovolter_boost_current&gt;&gt;</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="at">      &lt;&lt;sensor.ecovolter_target_current&gt;&gt;</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="at">      &lt;&lt;sensor.ecovolter_boost_time&gt;&gt;</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="at">      ...</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">binary_sensor</span><span class="kw">:</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="at">      &lt;&lt;binary_sensor.ecovolter_single_phase&gt;&gt;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="at">      &lt;&lt;binary_sensor.ecovolter_charging_enabled&gt;&gt;</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="at">      ...</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#+end_src</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>YAML definitions of all sensors or binary sensors may appear anywhere in the source Org file. Each has to be designated by the same name that was used in the corresponding noweb reference (between the chevrons <code>&lt;&lt;</code> and <code>&gt;&gt;</code>). Here is an example:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">#+NAME: sensor.ecovolter_target_current</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#+begin_src yaml</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="at">  </span><span class="kw">-</span><span class="at"> </span><span class="fu">name</span><span class="kw">:</span><span class="at"> </span><span class="st">"EcoVolter target current"</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">unique_id</span><span class="kw">:</span><span class="at"> </span><span class="st">"ccbfbac7-8eb3-4bb9-9951-4d41acfd5a1e"</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">icon</span><span class="kw">:</span><span class="at"> </span><span class="st">"mdi:car-electric"</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">value_template</span><span class="kw">:</span><span class="at"> </span><span class="st">"{{ value_json.targetCurrent }}"</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="at">    </span><span class="fu">unit_of_measurement</span><span class="kw">:</span><span class="at"> </span><span class="st">"A"</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="co">#+end_src</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>When tangling the output YAML file, Emacs observes the indentation level of the noweb reference and indents the included chunk accordingly. The chunk itself thus needn’t be indented within it code block, which is very handy.</p>
+<p>The noweb references may use any names, as long as they are unique, but I found it very convenient to use complete HA entity names because one can then immediately look up the entity in the graphical UI.</p>
+</section>
+<section id="deployment" class="level2">
+<h2 class="anchored" data-anchor-id="deployment">Deployment</h2>
+<p>It’s nice to be able to generate all YAML configuration files from a single Org source, but by itself it isn’t sufficient. In order to make this system practical, I had to find a way for automating the process of deploying the generated files on my Home Assistant server. After some experimenting I ended up with the procedure described below. There can certainly be other ways of achieving the same but here I was able to leverage functionality already available in Git and Home Assistant.</p>
+<p>The procedure consists of the following steps:</p>
+<ol type="1">
+<li>Edit the source Org file Emacs.</li>
+<li>Review, stage and commit the changes to Git.</li>
+<li>Push the new commit(s) to a remote repository on my home network server.</li>
+<li>Activate the new configuration on the Home Assistant server, usually via quick reload.</li>
+</ol>
+<p>Most of of the underlying magic happens in step&nbsp;3: the remote Git repository uses a pre-receive <a href="https://git-scm.com/docs/githooks">hook</a> that does the following:</p>
+<ul>
+<li>check out the working tree on the remote server</li>
+<li>use Emacs in the batch mode on it to tangle all YAML configuration files (still inside the working tree)</li>
+<li>use <a href="https://rsync.samba.org">rsync</a> to synchronize modified YAML files with the <code>config</code> directory on my HA server.</li>
+</ul>
+<p>Below is a transcript of the <code>git push</code> operation that also contains terminal output of the hook script (prefixed with <code>remote:</code>). A useful detail in the output of <strong>rsync</strong> is the list of YAML configuration files that have been updated – here it is just <code>automations.yaml</code>.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> git push</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="ex">Enumerating</span> objects: 5, done.</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ex">Counting</span> objects: 100% <span class="er">(</span><span class="ex">5/5</span><span class="kw">)</span><span class="ex">,</span> done.</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="ex">Delta</span> compression using up to 8 threads</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Compressing</span> objects: 100% <span class="er">(</span><span class="ex">3/3</span><span class="kw">)</span><span class="ex">,</span> done.</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="ex">Writing</span> objects: 100% <span class="er">(</span><span class="ex">3/3</span><span class="kw">)</span><span class="ex">,</span> 343 bytes <span class="kw">|</span> <span class="ex">343.00</span> KiB/s, done.</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="ex">Total</span> 3 <span class="er">(</span><span class="ex">delta</span> 2<span class="kw">)</span><span class="ex">,</span> reused 0 <span class="er">(</span><span class="ex">delta</span> 0<span class="kw">)</span><span class="ex">,</span> pack-reused 0</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="ex">remote:</span> Already on <span class="st">'master'</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="ex">remote:</span> Loading /etc/emacs/site-start.d/00debian.el <span class="er">(</span><span class="bu">source</span><span class="kw">)</span><span class="ex">...</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="ex">remote:</span> Loading /etc/emacs/site-start.d/50autoconf.el <span class="er">(</span><span class="bu">source</span><span class="kw">)</span><span class="ex">...</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="ex">remote:</span> Tangled 36 code blocks from ll-ha-config.org</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="ex">remote:</span> sending incremental file list</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="ex">remote:</span> automations.yaml</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="ex">remote:</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="ex">remote:</span> sent 45,826 bytes  received 47 bytes  30,582.00 bytes/sec</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="ex">remote:</span> total size is 127,670  speedup is 2.78</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="ex">To</span> trail.lhotka.name:Depot/hazard</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>   <span class="ex">9f0eccf..8294a02</span>  master <span class="at">-</span><span class="op">&gt;</span> master</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<p>The hook script looks like this:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>  <span class="va">WDIR</span><span class="op">=</span><span class="st">"/home/ha/literate-ha"</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="va">ORG</span><span class="op">=</span><span class="st">"ll-ha-config.org"</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="bu">read</span> <span class="va">oldref</span> <span class="va">newref</span> <span class="va">refname</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="va">branch</span><span class="op">=</span><span class="va">$(</span><span class="fu">basename</span> <span class="va">$refname)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rm</span> <span class="at">-rf</span> <span class="va">$WDIR</span>/<span class="pp">*</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">git</span> <span class="at">--work-tree</span><span class="op">=</span><span class="st">"</span><span class="va">$WDIR</span><span class="st">"</span> checkout <span class="va">$branch</span> <span class="at">-f</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="bu">cd</span> <span class="va">$WDIR</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="ex">emacs</span> <span class="at">--batch</span> <span class="at">--eval</span> <span class="st">"</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="st">      (progn</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="st">        (setq org-id-track-globally nil)</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="st">        (find-file </span><span class="dt">\"</span><span class="va">$ORG</span><span class="dt">\"</span><span class="st">)</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="st">        (org-babel-tangle))"</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rsync</span> <span class="at">-crv</span> <span class="at">--delete</span> <span class="dt">\</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">--exclude</span> <span class="st">'ui_lovelace_minimalist/custom_*'</span> <span class="dt">\</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">--exclude</span> <span class="st">'blueprints/automation/homeassistant'</span> <span class="dt">\</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">--exclude</span> <span class="st">'blueprints/script/homeassistant'</span> <span class="dt">\</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">--exclude</span> <span class="st">'blueprints/template/homeassistant'</span> <span class="dt">\</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">--exclude</span> <span class="st">'esphome/trash'</span> <span class="dt">\</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">--exclude</span> <span class="st">'esphome/.gitignore'</span> <span class="dt">\</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>        <span class="pp">*</span>.yaml esphome ui_lovelace_minimalist <span class="dt">\</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>        custom_templates blueprints /mnt/ha</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="code-organization" class="level2">
+<h2 class="anchored" data-anchor-id="code-organization">Code organization</h2>
+<p>An outline of my HA literate configuration with all sections folded (collapsed) can be seen in <a href="#fig-top-outline" class="quarto-xref">Figure&nbsp;1 (a)</a>:</p>
+<div id="fig-screenshots" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-screenshots-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-screenshots" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-top-outline" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-top-outline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="top-outline.png" class="img-fluid figure-img" data-ref-parent="fig-screenshots">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-top-outline-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) Top-level outline
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-screenshots" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-config-files" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-config-files-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="config-files.png" class="img-fluid figure-img" data-ref-parent="fig-screenshots">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-config-files-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) Skeletons of configuration files
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-screenshots-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Screenshots of the literate configuration file in Emacs
+</figcaption>
+</figure>
+</div>
+<p>The first section (shown partially unfolded in <a href="#fig-config-files" class="quarto-xref">Figure&nbsp;1 (b)</a>) contains skeletons of most YAML configuration files that are generated from the master file. Their names are specified in the <code>:tangle</code> directive in the header of each code block. Most of the remaining sections then contain literate configuration organized by particular topics such as electricity costs (see <a href="#fig-costs" class="quarto-xref">Figure&nbsp;2</a>) or BEV charging.</p>
+<div id="fig-costs" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-costs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="costs.png" class="img-fluid figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-costs-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2: Example section in a literate configuration
+</figcaption>
+</figure>
+</div>
+<p>When searching for an existing definition of an automation, script, template sensor etc., I can either</p>
+<ul>
+<li><p>look it up in the corresponding skeleton file by name and then easily navigate to its YAML definition using the command <code>org-babel-goto-named-src-block</code> (bound by default to <code>Ctrl-C Ctrl-v g</code>), or</p></li>
+<li><p>browse the appropriate section and find it in the text.</p></li>
+</ul>
+<p>The <em>IoT gadgets</em> section contains descriptions of all smart devices (plugs, buttons, NFC tags etc.) that are in use. Other sections refer to them where needed, for example to document that an appliance is connected to or controlled by the device.</p>
+</section>
+<section id="literate-configuration-and-the-standard-ui" class="level2">
+<h2 class="anchored" data-anchor-id="literate-configuration-and-the-standard-ui">Literate configuration and the standard UI</h2>
+<p>The standard web user interface of Home Assistant has been steadily improving and has become truly indispensable for certain kinds of tasks. Fortunately, dealing with configuration in the literate style (mostly) doesn’t mean that one has to avoid the standard UI as a configuration tool. On the contrary, both configuration approaches can be used in a synergy, one just has to be a little careful.</p>
+<p>For example, when creating a new automation, I often start with the web UI and take advantage of autocompletion and other nice features of the web forms and widgets. After saving it, I copy and paste it to a code block in Emacs, make additional edits if necessary and finally commit and push the result to the Git repository. Similarly, it is quite convenient to develop a Jinja2 template in the web UI and then copy the final result to a code block in the Org file.</p>
+<p>When it comes to custom dashboards, I originally started with <a href="https://github.com/UI-Lovelace-Minimalist/UI">UI-Lovelace-Minimalist</a> and had all its configuration in my Org file. It helped me a lot to keep the set of dashboards organized but it was still quite tedious to manage the entire user interface in source code. Not long ago I realized that I could no more ignore the vast improvements in the standard (Lovelace) dashboards and decided to migrate. Regrettably, there is this strict dichotomy of UI versus YAML modes for dashboard configuration. I chose the former because it is very convenient to lay out and update the dashboards via the graphical interface. Nonetheless, there are still situations where it would be more efficient to work with YAML code and literate configuration. In particular, I have separate dashboards for desktops, mobile devices and wall panels, so I quite often need to reuse same cards in different places. I can either configure them repeatedly via the UI, which is a drudgery for all but trivial cards, or copy and paste YAML code between web forms, which is difficult and error prone. I would thus very much appreciate to be able to work with YAML code and via UI interchangeably, as it is possible for scripts and automations.</p>
+<p>I do keep one dashboard in the YAML mode and work with it in the literate configuration style. It contains my collection of <a href="https://github.com/RomRider/apexcharts-card">ApexCharts</a>. The reason for this exception is twofold: first, ApexCharts have to be configured completely in YAML anyway, and, second, it is much easier to copy fragments of YAML code in Emacs (with adjusted indentation, if necessary) and paste them to other dashboards in UI mode.</p>
+</section>
+<section id="other-goodies" class="level2">
+<h2 class="anchored" data-anchor-id="other-goodies">Other goodies</h2>
+<p>Apart from the main features of Org and YAML modes that were described above, there are a few other useful functions.</p>
+<p>First, Emacs can help with generating unique IDs that are very important in Home Assistant. Whilst they aren’t required everywhere, I soon learnt to put them where possible (automations, template sensors etc.). It may seem logical to use descriptive strings as unique IDs, but as soon as one needs to change the underlying entity the previously assigned ID could become confusing if it no more reflects reality. Hence, a better practice is to use opaque strings, as Home Assistant does internally. Emacs can generate them with the <strong>uuidgen</strong> function, which I have bound to <code>Ctrl-+</code> for easy access.</p>
+<p>Org mode also offers extensive possibilities for exporting the source text in various formats. The HTML export might be useful for publishing a literate configuration (or parts thereof) as a web page. I personally don’t see much reason to publish my configuration in its entirety, as long as the resulting HTML doesn’t support collapsible sections in the same way as the Org source does. I occassionally use HTML export for publishing fragments dealing with specific topics. It is also very useful that GitHub now supports the Org mode syntax directly, so one can view nicely rendered literate configuration files out of the box. An example is <a href="https://github.com/llhotka/mybox-ha-mqtt/blob/main/mybox-ha-mqtt.org">here</a>.</p>
+</section>
+<section id="conclusions" class="level2">
+<h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>
+<p>The workflow for literate configuration that I described in the previous sections makes me feel confident that I am in control of my Home Assistant configuration. I can easily return to any topic even after a long break, refresh my understanding of how the relevant entities, automations and scripts are supposed to work together, and update or extend the configuration.</p>
+<p>But – is this system for everybody? Objectively, it isn’t. For one, if you aren’t an Emacs user yet, it might not be very effective to learn the editor and the Org mode just for the sake of configuring Home Assistant. On the other hand, I do think that the Org mode is so powerful and useful that it is a reason good enough for starting with Emacs in the first place.</p>
+<p>Second, the literate approach probably isn’t for someone who wants to get things done quickly. A literate configuration needn’t necessarily be a piece of art but it still requires certain extra effort and a bit of careful planning. For complex configurations, though, this overhead will pay off in a long term.</p>
+<p>And finally, I think beginners may be better off using the Home Assistant’s native UI that is more intuitive and provides contextual help in many places. It is possible to migrate configuration to the literate style at any later time.</p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/blog\.lhotka\.name");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<script src="https://utteranc.es/client.js" repo="llhotka/blog-comments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Made with <a href="https://quarto.org"><img src="https://quarto.org/quarto.png" class="img-fluid" alt="Quarto" width="65"></a></p>
+</div>   
+    <div class="nav-footer-center">
+<p>© 2024 • licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/?ref=chooser-v1">CC BY-SA 4.0</a> <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg?ref=chooser-v1" data-margin-left="4px" height="15"> <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg?ref=chooser-v1" data-margin-left="4px" height="15"> <img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg?ref=chooser-v1" data-margin-left="4px" height="15"></p>
+</div>
+    <div class="nav-footer-right">
+      <ul class="footer-items list-unstyled">
+    <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/llhotka/llhotka.github.io" target="_blank">
+      <i class="bi bi-code-slash" role="img">
+</i> 
+    </a>
+  </li>  
+</ul>
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>

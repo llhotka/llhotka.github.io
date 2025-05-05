@@ -2,12 +2,14 @@
   {
     "listing": "/archive.html",
     "items": [
+      "/posts/literate-ha-config/index.html",
       "/posts/mybox-home-assistant/index.html"
     ]
   },
   {
     "listing": "/index.html",
     "items": [
+      "/posts/literate-ha-config/index.html",
       "/posts/mybox-home-assistant/index.html"
     ]
   }
