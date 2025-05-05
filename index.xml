@@ -70,7 +70,7 @@ font-style: inherit;"> energy</span></span>
 background-color: null;
 font-style: inherit;">#+end_src</span></span></code></pre></div>
 <p>Chunks with the same value of the <code>:tangle</code> parameter are collected, in the order as they appear in the source Org file, in the specified file (<code>customizations.yaml</code> for the example above).</p>
-<p>YAML chunks to be placed somewhere deeper in the hierarchy can be handled using the second approach (noweb references). One has to write a skeleton configuration file, and then refer to individual chunks from it. For instance, the configuration file for <a href="https://www.home-assistant.io/integrations/rest">RESTful</a> integration look like this (abridged):</p>
+<p>YAML chunks to be placed somewhere deeper in the hierarchy can be handled using the second approach (noweb references). One has to write a skeleton configuration file, and then refer to individual chunks from it. For instance, the configuration file for <a href="https://www.home-assistant.io/integrations/rest">RESTful</a> integration looks like this (abridged):</p>
 <div class="sourceCode" id="cb2" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#+begin_src yaml :tangle rest.yaml</span></span>
@@ -246,7 +246,7 @@ font-style: inherit;">"A"</span></span>
 <span id="cb3-8"><span class="co" style="color: #5E5E5E;
 background-color: null;
 font-style: inherit;">#+end_src</span></span></code></pre></div>
-<p>When tangling the output YAML file, Emacs observes the indentation level of the noweb reference and indents the included chunk accordingly. The chunk itself thus needn’t be indented within it code block, which is very handy.</p>
+<p>When tangling the output YAML file, Emacs observes the indentation level of the noweb reference and indents the included chunk accordingly. The chunk itself thus needn’t be indented within its code block, which is very handy.</p>
 <p>The noweb references may use any names, as long as they are unique, but I found it very convenient to use complete HA entity names because one can then immediately look up the entity in the graphical UI.</p>
 </section>
 <section id="deployment" class="level2">
