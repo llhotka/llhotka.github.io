@@ -1,6 +1,7 @@
 ---
 title: "MyBox and Home Assistant"
 date: "2024-10-29"
+date-modified: "2025-05-05"
 description: >-
   This post describes how to integrate MyBox wallbox to Home Assistant
   via MQTT.

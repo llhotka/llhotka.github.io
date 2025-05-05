@@ -1,6 +1,7 @@
 ---
 title: "Literate Home Assistant Configuration"
-date: "2025-02-28"
+date: "2025-05-05"
+date-modified: "2025-05-05"
 description: >-
   Larger instalations of Home Assistant smart-home networks usually
   lead to a fairly complex configuration that is difficult to develop
@@ -36,16 +37,16 @@ following list:
 1. It should be possible to document definitions well beyond what's
    reasonable to have as object descriptions.
 1. I want to keep an archive of scripts, template sensors etc. that
-   needn't be necessarily configured.
+   needn't be necessarily configured in my Home Assistant server.
 
 As it turned out, with the toolset that I've been using for decades,
 especially [Git](https://git-scm.com),
 [Emacs](https://www.gnu.org/software/emacs) and [Org
-mode](https://orgmode.org), it was possible to achieve the above
-requirements pretty easily. I realize that my solution isn't for
-everybody but, after two years of almost daily usage, I must say that
-it works almost perfectly and already saved me a lot of time and
-trouble.
+mode](https://orgmode.org), it was possible to achieve the above goals
+pretty easily. I realize that my solution, which I call *literate
+configuration*, isn't for everybody but, after two years of almost
+daily usage, I must say that it works almost perfectly and has already
+saved me a lot of time and trouble.
 
 ## Code blocks and YAML in Emacs
 
@@ -63,16 +64,19 @@ maybe because it really isn't a programming language. It was however
 quite easy to implement support for YAML code blocks by modifying the
 provided Emacs Lisp
 [template](https://git.sr.ht/~bzg/worg/tree/master/item/org-contrib/babel/ob-template.el).
-The resulting module ob-yaml.el is available on [GitHub](https://github.com/llhotka/ob-yaml) and can be
-loaded in Emacs [as usual](https://www.gnu.org/software/emacs/manual/html_node/eintr/Loading-Files.html).
+The resulting module `ob-yaml.el` is available on
+[GitHub](https://github.com/llhotka/ob-yaml) and can be loaded in
+Emacs [as
+usual](https://www.gnu.org/software/emacs/manual/html_node/eintr/Loading-Files.html).
 
 ## Literate programming
 
-The term *literate programming* was coined by Donald Knuth in 1984 as
-a way for developing computer programs as pieces of literature that
-humans can easily read and enjoy.  He then used this programming
-method for developing the T~E~X typesetting system that many of us
-still use. The Org mode uses the
+The term [literate
+programming](https://en.wikipedia.org/wiki/Literate_programming) was
+coined by Donald Knuth in 1984 as a way for developing computer
+programs as pieces of literature that humans can easily read and
+enjoy.  He then used this programming method for developing the TeX
+typesetting system that many of us still use. The Org mode uses the
 [noweb](https://www.cs.tufts.edu/~nr/noweb) implementation of literate
 programming. Two of its features are important for our purposes:
 
@@ -95,14 +99,14 @@ that are at the top level of YAML hierarchy, for example
 
 Chunks with the same value of the `:tangle` parameter are collected,
 in the order as they appear in the source Org file, in the
-configuration file `customizations.yaml`.
+specified file (`customizations.yaml` for the example above).
 
 YAML chunks to be placed somewhere deeper in the hierarchy can be
 handled using the second approach (noweb references). One has to write
 a skeleton configuration file, and then refer to individual chunks
 from it. For instance, the configuration file for
 [RESTful](https://www.home-assistant.io/integrations/rest) integration
-look like this (abridged):
+looks like this (abridged):
 ```yaml
 #+begin_src yaml :tangle rest.yaml
   - resource: !secret ecovolter_get_url
@@ -125,7 +129,7 @@ look like this (abridged):
 YAML definitions of all sensors or binary sensors may appear anywhere
 in the source Org file. Each has to be designated by the same name
 that was used in the corresponding noweb reference (between the
-chevrons `<<` and `>>`. Here is an example:
+chevrons `<<` and `>>`). Here is an example:
 ```yaml
 #+NAME: sensor.ecovolter_target_current
 #+begin_src yaml
@@ -139,8 +143,8 @@ chevrons `<<` and `>>`. Here is an example:
 
 When tangling the output YAML file, Emacs observes the indentation
 level of the noweb reference and indents the included chunk
-accordingly. The chunk itself thus needn't be indented within it code
-block, which is very useful.
+accordingly. The chunk itself thus needn't be indented within its code
+block, which is very handy.
 
 The noweb references may use any names, as long as they are unique,
 but I found it very convenient to use complete HA entity names because
@@ -176,12 +180,12 @@ repository uses a pre-receive
 * use [rsync](https://rsync.samba.org) to synchronize modified YAML
   files with the `config` directory on my HA server.
 
-Heretang is a transcript of the `git push` operation that also contains
-terminal output of the hook script:
+Below is a transcript of the `git push` operation that also contains
+terminal output of the hook script (prefixed with `remote:`). A useful
+detail in the output of **rsync** is the list of YAML configuration
+files that have been updated – here it is just `automations.yaml`.
 
-**TODO:** Annotate parts of the output 
-
-```
+```bash
 $ git push
 Enumerating objects: 5, done.
 Counting objects: 100% (5/5), done.
@@ -230,8 +234,8 @@ The hook script looks like this:
 
 ## Code organization
 
-An outline of my HA literate configuration with all sections hidden
-(folded) can be seen in @fig-top-outline:
+An outline of my HA literate configuration with all sections folded
+(collapsed) can be seen in @fig-top-outline:
 
 ::: {#fig-screenshots layout-ncol=2}
 
@@ -243,7 +247,7 @@ Screenshots of the literate configuration file in Emacs
 :::
 
 The first section (shown partially unfolded in @fig-config-files)
-contains skeletons of all YAML configuration files that are generated
+contains skeletons of most YAML configuration files that are generated
 from the master file. Their names are specified in the `:tangle`
 directive in the header of each code block. Most of the remaining
 sections then contain literate configuration organized by particular
@@ -253,10 +257,12 @@ topics such as electricity costs (see @fig-costs) or BEV charging.
 
 When searching for an existing definition of an automation, script,
 template sensor etc., I can either
+
 - look it up in the corresponding skeleton file by name and then
   easily navigate to its YAML definition using the command
-  `org-babel-goto-named-src-block` (bound by default to `Ctrl-C Ctrl-v
-  g`), or
+  `org-babel-goto-named-src-block`
+  (bound by default to `Ctrl-C Ctrl-v g`), or
+
 - browse the appropriate section and find it in the text.
 
 The _IoT gadgets_ section contains descriptions of all smart
@@ -269,7 +275,7 @@ appliance is connected to or controlled by the device.
 The standard web user interface of Home Assistant has been steadily
 improving and has become truly indispensable for certain kinds of
 tasks. Fortunately, dealing with configuration in the literate style
-doesn't mean that one has to avoid the standard UI as a configuration
+(mostly) doesn't mean that one has to avoid the standard UI as a configuration
 tool. On the contrary, both configuration approaches can be used in a
 synergy, one just has to be a little careful.
 
@@ -281,50 +287,84 @@ commit and push the result to the Git repository. Similarly, it is
 quite convenient to develop a Jinja2 template in the web UI and then
 copy the final result to a code block in the Org file.
 
-**TODO**: Dashboards in UI
+When it comes to custom dashboards, I originally started with
+[UI-Lovelace-Minimalist](https://github.com/UI-Lovelace-Minimalist/UI)
+and had all its configuration in my Org file. It helped me a lot to
+keep the set of dashboards organized but it was still quite tedious to
+manage the entire user interface in source code. Not long ago I
+realized that I could no more ignore the vast improvements in the
+standard (Lovelace) dashboards and decided to migrate. Regrettably,
+there is this strict dichotomy of UI versus YAML modes for dashboard
+configuration. I chose the former because it is very convenient to lay
+out and update the dashboards via the graphical
+interface. Nonetheless, there are still situations where it would be
+more efficient to work with YAML code and literate configuration. In
+particular, I have separate dashboards for desktops, mobile devices
+and wall panels, so I quite often need to reuse same cards in
+different places. I can either configure them repeatedly via the UI,
+which is a drudgery for all but trivial cards, or copy and paste YAML
+code between web forms, which is difficult and error prone. I would
+thus very much appreciate to be able to work with YAML code and via UI
+interchangeably, as it is possible for scripts and automations.
+
+I do keep one dashboard in the YAML mode and work with it in the
+literate configuration style. It contains my collection of
+[ApexCharts](https://github.com/RomRider/apexcharts-card). The reason
+for this exception is twofold: first, ApexCharts have to be configured
+completely in YAML anyway, and, second, it is much easier to copy
+fragments of YAML code in Emacs (with adjusted indentation, if
+necessary) and paste them to other dashboards in UI mode.
 
 ## Other goodies
 
 Apart from the main features of Org and YAML modes that were described
 above, there are a few other useful functions.
 
-First, Emacs can help with generating unique IDs that are very important
-in Home Assistant. Whilst they aren't required everywhere, I soon learnt
-to put them where possible (automations, template sensors etc.). It may seem logical
-to use descriptive strings as unique IDs, but as soon as one needs to change
-the underlying entity the previously assigned ID could become confusing if it
-no more reflects reality. Hence, a better practice is to use opaque strings, as Home
-Assistant does internally. Emacs can generate them with the **XXXX** function,
-which I have bound to `Ctrl-+` for easy access.
+First, Emacs can help with generating unique IDs that are very
+important in Home Assistant. Whilst they aren't required everywhere, I
+soon learnt to put them where possible (automations, template sensors
+etc.). It may seem logical to use descriptive strings as unique IDs,
+but as soon as one needs to change the underlying entity the
+previously assigned ID could become confusing if it no more reflects
+reality. Hence, a better practice is to use opaque strings, as Home
+Assistant does internally. Emacs can generate them with the
+**uuidgen** function, which I have bound to `Ctrl-+` for easy access.
 
-Org mode also offers extensive possibilities for exporting the source text in
-various formats. The HTML export might be useful for publishing a literate
-configuration (or parts thereof) as a web page. I personally don't see much
-reason to publish my configuration in its entirety, as long as the resulting
-HTML doesn't support collapsible sections in the same way as the Org source does.
-I occassionally use HTML export for publishing fragments dealing with specific
-topics – an example is **HERE**.
+Org mode also offers extensive possibilities for exporting the source
+text in various formats. The HTML export might be useful for
+publishing a literate configuration (or parts thereof) as a web
+page. I personally don't see much reason to publish my configuration
+in its entirety, as long as the resulting HTML doesn't support
+collapsible sections in the same way as the Org source does.  I
+occassionally use HTML export for publishing fragments dealing with
+specific topics. It is also very useful that GitHub now supports the
+Org mode syntax directly, so one can view nicely rendered literate
+configuration files out of the box. An example is [here](https://github.com/llhotka/mybox-ha-mqtt/blob/main/mybox-ha-mqtt.org).
 
 ## Conclusions
 
-The workflow for literate configuration that I described in the previous sections
-makes me feel confident that I am in control of my Home Assistant configuration.
-I can easily return to any topic even after a long break, refresh my understanding
-of how the relevant entities, automations and scripts are supposed to work together,
-and update or extend the configuration.
+The workflow for literate configuration that I described in the
+previous sections makes me feel confident that I am in control of my
+Home Assistant configuration.  I can easily return to any topic even
+after a long break, refresh my understanding of how the relevant
+entities, automations and scripts are supposed to work together, and
+update or extend the configuration.
 
-But – is this system for everybody? Objectively, it isn't. For one, if you aren't an Emacs
-user yet, it might not be very effective to learn the editor and the Org mode just
-for the sake of configuring Home Assistant. On the other hand, I do think that
-the Org mode is so powerful and useful that it is a reason good enough for starting
-with Emacs in the first place.
+But – is this system for everybody? Objectively, it isn't. For one, if
+you aren't an Emacs user yet, it might not be very effective to learn
+the editor and the Org mode just for the sake of configuring Home
+Assistant. On the other hand, I do think that the Org mode is so
+powerful and useful that it is a reason good enough for starting with
+Emacs in the first place.
 
-Second, the literate approach probably isn't for someone who wants to get things done
-quickly. A literate configuration needn't necessarily be a piece of art but it still
-requires certain extra effort and a bit of careful planning. For complex configurations, though,
-this overhead will pay off in a long term.
+Second, the literate approach probably isn't for someone who wants to
+get things done quickly. A literate configuration needn't necessarily
+be a piece of art but it still requires certain extra effort and a bit
+of careful planning. For complex configurations, though, this overhead
+will pay off in a long term.
 
-And finally, I think beginners may be better off using the Home Assistant native UI that
-is more intuitive and provides contextual help in many places. It is possible to migrate
-configuration to the literate style at any later time.
+And finally, I think beginners may be better off using the Home
+Assistant's native UI that is more intuitive and provides contextual
+help in many places. It is possible to migrate configuration to the
+literate style at any later time.
 
