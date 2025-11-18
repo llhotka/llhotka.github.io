@@ -9,8 +9,37 @@
 <link>https://blog.lhotka.name/</link>
 <atom:link href="https://blog.lhotka.name/index.xml" rel="self" type="application/rss+xml"/>
 <description>This is Ladislav Lhotka&#39;s personal blog.</description>
-<generator>quarto-1.7.29</generator>
-<lastBuildDate>Sun, 04 May 2025 22:00:00 GMT</lastBuildDate>
+<generator>quarto-1.7.31</generator>
+<lastBuildDate>Sun, 15 Jun 2025 22:00:00 GMT</lastBuildDate>
+<item>
+  <title>Adaptive BEV charging</title>
+  <dc:creator>Ladislav Lhotka</dc:creator>
+  <link>https://blog.lhotka.name/posts/adaptive-bev-charging/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p><span class="citation" data-cites="ruoti_blockchain_2019">Ruoti et al. (2019)</span> wrote an interesting article about blockchain.</p>
+
+
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0">
+<div id="ref-ruoti_blockchain_2019" class="csl-entry">
+Ruoti, Scott, Ben Kaiser, Arkady Yerukhimovich, Jeremy Clark, and Rob Cunningham. 2019. <span>“Blockchain <span>Technology</span>: <span>What</span> <span>Is</span> <span>It</span> <span>Good</span> for? <span>Industry</span>’s Dreams and Fears for This New Technology.”</span> <em>Queue</em> 17 (5): Pages 60:41–68. <a href="https://doi.org/10.1145/3371595.3376896">https://doi.org/10.1145/3371595.3376896</a>.
+</div>
+</div></section></div> ]]></description>
+  <category>BEV</category>
+  <category>solar energy</category>
+  <category>Home Assistant</category>
+  <guid>https://blog.lhotka.name/posts/adaptive-bev-charging/</guid>
+  <pubDate>Sun, 15 Jun 2025 22:00:00 GMT</pubDate>
+  <media:content url="https://blog.lhotka.name/posts/adaptive-bev-charging/home-assistant-svgrepo-com.svg" medium="image" type="image/svg+xml"/>
+</item>
 <item>
   <title>Literate Home Assistant Configuration</title>
   <dc:creator>Ladislav Lhotka</dc:creator>

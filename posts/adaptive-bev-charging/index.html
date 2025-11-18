@@ -6,8 +6,11 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
+<meta name="author" content="Ladislav Lhotka">
+<meta name="dcterms.date" content="2025-06-16">
+<meta name="description" content="TBD">
 
-<title>Ladislav Lhotka’s Blog – Blog Matrix</title>
+<title>Adaptive BEV charging – Blog Matrix</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -20,29 +23,47 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<link href="./images/logo.png" rel="icon" type="image/png">
-<script src="site_libs/quarto-listing/list.min.js"></script>
-<script src="site_libs/quarto-listing/quarto-listing.js"></script>
-<script src="site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-aad47d4606dcadcfee8bfcd2106e8a97.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-bd55e5fa0993058969db256aacb56745.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../images/logo.png" rel="icon" type="image/png">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-aad47d4606dcadcfee8bfcd2106e8a97.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-bd55e5fa0993058969db256aacb56745.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -70,86 +91,30 @@ ul.task-list li input[type="checkbox"] {
     "search-label": "Search"
   }
 }</script>
-<script>
 
-  window.document.addEventListener("DOMContentLoaded", function (_event) {
-    const listingTargetEl = window.document.querySelector('#listing-listing .list');
-    if (!listingTargetEl) {
-      // No listing discovered, do not attach.
-      return; 
-    }
 
-    const options = {
-      valueNames: ['listing-date','listing-title','listing-reading-time','listing-description','listing-image','listing-categories',{ data: ['index'] },{ data: ['categories'] },{ data: ['listing-date-sort'] },{ data: ['listing-file-modified-sort'] }],
-      
-      searchColumns: ["listing-date","listing-title","listing-author","listing-image","listing-description","listing-categories"],
-    };
-
-    window['quarto-listings'] = window['quarto-listings'] || {};
-    window['quarto-listings']['listing-listing'] = new List('listing-listing', options);
-
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  });
-
-  window.addEventListener('hashchange',() => {
-    if (window['quarto-listing-loaded']) {
-      window['quarto-listing-loaded']();
-    }
-  })
-  </script>
-
-  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
-
-<script type="text/javascript">
-const typesetMath = (el) => {
-  if (window.MathJax) {
-    // MathJax Typeset
-    window.MathJax.typeset([el]);
-  } else if (window.katex) {
-    // KaTeX Render
-    var mathElements = el.getElementsByClassName("math");
-    var macros = [];
-    for (var i = 0; i < mathElements.length; i++) {
-      var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
-        window.katex.render(texText.data, mathElements[i], {
-          displayMode: mathElements[i].classList.contains('display'),
-          throwOnError: false,
-          macros: macros,
-          fleqn: false
-        });
-      }
-    }
-  }
-}
-window.Quarto = {
-  typesetMath
-};
-</script>
-
-<link rel="stylesheet" href="styles.css">
-<link rel="alternate" type="application/rss+xml" title="Blog Matrix" href="index.xml" data-external="1"><meta property="og:title" content="Ladislav Lhotka’s Blog – Blog Matrix">
+<link rel="stylesheet" href="../../styles.css">
+<meta property="og:title" content="Adaptive BEV charging – Blog Matrix">
+<meta property="og:description" content="TBD">
 <meta property="og:image" content="https://blog.lhotka.name/posts/adaptive-bev-charging/home-assistant-svgrepo-com.svg">
 <meta property="og:site_name" content="Blog Matrix">
-<meta name="twitter:title" content="Ladislav Lhotka’s Blog – Blog Matrix">
+<meta name="twitter:title" content="Adaptive BEV charging – Blog Matrix">
+<meta name="twitter:description" content="TBD">
 <meta name="twitter:image" content="https://blog.lhotka.name/posts/adaptive-bev-charging/home-assistant-svgrepo-com.svg">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
-<body class="nav-fixed quarto-light">
+<body class="nav-fixed fullcontent quarto-light">
 
 <div id="quarto-search-results"></div>
   <header id="quarto-header" class="headroom fixed-top">
     <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
-    <a href="./index.html" class="navbar-brand navbar-brand-logo">
-    <img src="./images/logo.svg" alt="" class="navbar-logo">
+    <a href="../../index.html" class="navbar-brand navbar-brand-logo">
+    <img src="../../images/logo.svg" alt="" class="navbar-logo">
     </a>
-    <a class="navbar-brand" href="./index.html">
+    <a class="navbar-brand" href="../../index.html">
     <span class="navbar-title">Blog Matrix</span>
     </a>
   </div>
@@ -160,11 +125,11 @@ window.Quarto = {
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll ms-auto">
   <li class="nav-item">
-    <a class="nav-link" href="./about.html"> 
+    <a class="nav-link" href="../../about.html"> 
 <span class="menu-text">About</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./archive.html"> 
+    <a class="nav-link" href="../../archive.html"> 
 <span class="menu-text">Archive</span></a>
   </li>  
   <li class="nav-item compact">
@@ -185,26 +150,52 @@ window.Quarto = {
     </nav>
 </header>
 <!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(3)</span></div><div class="category" data-category="QkVW">BEV <span class="quarto-category-count">(1)</span></div><div class="category" data-category="ZWxlY3Ryb21vYmlsaXR5">electromobility <span class="quarto-category-count">(1)</span></div><div class="category" data-category="SG9tZSUyMEFzc2lzdGFudA==">Home Assistant <span class="quarto-category-count">(3)</span></div><div class="category" data-category="bGl0ZXJhdGUlMjBwcm9ncmFtbWluZw==">literate programming <span class="quarto-category-count">(1)</span></div><div class="category" data-category="T3JnJTIwbW9kZQ==">Org mode <span class="quarto-category-count">(1)</span></div><div class="category" data-category="c29sYXIlMjBlbmVyZ3k=">solar energy <span class="quarto-category-count">(1)</span></div></div></div>
+    
 <!-- main -->
-<main class="content column-page-left" id="quarto-document-content">
+<main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Ladislav Lhotka’s Blog</h1>
+<h1 class="title">Adaptive BEV charging</h1>
+  <div class="quarto-categories">
+    <div class="quarto-category">BEV</div>
+    <div class="quarto-category">solar energy</div>
+    <div class="quarto-category">Home Assistant</div>
+  </div>
+  </div>
+
+<div>
+  <div class="description">
+    TBD
+  </div>
 </div>
 
 
+<div class="quarto-title-meta">
 
-<div class="quarto-title-meta column-page-left">
-
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Ladislav Lhotka </p>
+          </div>
+  </div>
     
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">June 16, 2025</p>
+    </div>
+  </div>
   
+    <div>
+    <div class="quarto-title-meta-heading">Modified</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date-modified">June 16, 2025</p>
+    </div>
+  </div>
     
   </div>
   
@@ -213,131 +204,19 @@ window.Quarto = {
 </header>
 
 
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p><span class="citation" data-cites="ruoti_blockchain_2019">Ruoti et al. (<a href="#ref-ruoti_blockchain_2019" role="doc-biblioref">2019</a>)</span> wrote an interesting article about blockchain.</p>
 
 
 
+</section>
 
-<div class="quarto-listing quarto-listing-container-default" id="listing-listing">
-<div class="listing-actions-group">
-   <div class="input-group input-group-sm quarto-listing-sort">
-    <span class="input-group-text"><i class="bi bi-sort-down"></i></span>
-    <select id="listing-listing-sort" class="form-select" aria-label="Order By" onchange="window['quarto-listings']['listing-listing'].sort(this.options[this.selectedIndex].value, { order: this.options[this.selectedIndex].getAttribute('data-direction')})">
-      <option value="" disabled="" selected="" hidden="">Order By</option>
-      <option value="index" data-direction="asc">Default</option>
-      <option value="listing-title" data-direction="asc">
-        Title
-      </option>
-      <option value="listing-date-sort" data-direction="asc">
-        Date - Oldest
-      </option>
-      <option value="listing-date-sort" data-direction="desc">
-        Date - Newest
-      </option>
-    </select>
-  </div>
-    <div class="input-group input-group-sm quarto-listing-filter">
-      <span class="input-group-text"><i class="bi bi-search"></i></span>
-      <input type="text" class="search form-control" placeholder="Filter">
-    </div>
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-ruoti_blockchain_2019" class="csl-entry" role="listitem">
+Ruoti, Scott, Ben Kaiser, Arkady Yerukhimovich, Jeremy Clark, and Rob Cunningham. 2019. <span>“Blockchain <span>Technology</span>: <span>What</span> <span>Is</span> <span>It</span> <span>Good</span> for? <span>Industry</span>’s Dreams and Fears for This New Technology.”</span> <em>Queue</em> 17 (5): Pages 60:41–68. <a href="https://doi.org/10.1145/3371595.3376896">https://doi.org/10.1145/3371595.3376896</a>.
 </div>
-<div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="QkVWJTJDc29sYXIlMjBlbmVyZ3klMkNIb21lJTIwQXNzaXN0YW50" data-listing-date-sort="1750024800000" data-listing-file-modified-sort="1750060136241" data-listing-date-modified-sort="1750024800000" data-listing-reading-time-sort="1" data-listing-word-count-sort="7">
-<div class="thumbnail"><a href="./posts/adaptive-bev-charging/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/adaptive-bev-charging/home-assistant-svgrepo-com.svg" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/adaptive-bev-charging/index.html" class="no-external">Adaptive BEV charging</a>
-</h3>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('QkVW'); return false;">BEV</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('c29sYXIlMjBlbmVyZ3k='); return false;">solar energy</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('SG9tZSUyMEFzc2lzdGFudA=='); return false;">Home Assistant</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/adaptive-bev-charging/index.html" class="no-external">
-<p>TBD</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/adaptive-bev-charging/index.html" class="no-external">
-<div class="listing-date">
-Jun 16, 2025
-</div>
-<div class="listing-reading-time">1 min</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="1" data-categories="T3JnJTIwbW9kZSUyQ2xpdGVyYXRlJTIwcHJvZ3JhbW1pbmclMkNIb21lJTIwQXNzaXN0YW50" data-listing-date-sort="1746396000000" data-listing-file-modified-sort="1746453963397" data-listing-date-modified-sort="1746396000000" data-listing-reading-time-sort="12" data-listing-word-count-sort="2249">
-<div class="thumbnail"><a href="./posts/literate-ha-config/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/literate-ha-config/unicorn-ha-logo.svg" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/literate-ha-config/index.html" class="no-external">Literate Home Assistant Configuration</a>
-</h3>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('T3JnJTIwbW9kZQ=='); return false;">Org mode</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('bGl0ZXJhdGUlMjBwcm9ncmFtbWluZw=='); return false;">literate programming</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('SG9tZSUyMEFzc2lzdGFudA=='); return false;">Home Assistant</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/literate-ha-config/index.html" class="no-external">
-<p>Larger instalations of Home Assistant smart-home networks usually lead to a fairly complex configuration that is difficult to develop and maintain. This blog post describes my system of HA YAML code management, documentation and deployment based on Git, Emacs editor with its Org mode, an principles of literate programming.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/literate-ha-config/index.html" class="no-external">
-<div class="listing-date">
-May 5, 2025
-</div>
-<div class="listing-reading-time">12 min</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="2" data-categories="ZWxlY3Ryb21vYmlsaXR5JTJDSG9tZSUyMEFzc2lzdGFudA==" data-listing-date-sort="1730156400000" data-listing-file-modified-sort="1746449549930" data-listing-date-modified-sort="1746396000000" data-listing-reading-time-sort="8" data-listing-word-count-sort="1474">
-<div class="thumbnail"><a href="./posts/mybox-home-assistant/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/mybox-home-assistant/mybox-ha.png" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/mybox-home-assistant/index.html" class="no-external">MyBox and Home Assistant</a>
-</h3>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('ZWxlY3Ryb21vYmlsaXR5'); return false;">electromobility</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('SG9tZSUyMEFzc2lzdGFudA=='); return false;">Home Assistant</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/mybox-home-assistant/index.html" class="no-external">
-<p>This post describes how to integrate MyBox wallbox to Home Assistant via MQTT.</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/mybox-home-assistant/index.html" class="no-external">
-<div class="listing-date">
-Oct 29, 2024
-</div>
-<div class="listing-reading-time">8 min</div>
-</a>
-</div>
-</div>
-</div>
-<div class="listing-no-matching d-none">No matching items</div>
-</div></main> <!-- /main -->
+</div></section></div></main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";
@@ -737,6 +616,8 @@ Oct 29, 2024
     }
   });
   </script>
+<script src="https://utteranc.es/client.js" repo="llhotka/blog-comments" issue-term="pathname" theme="github-light" crossorigin="anonymous" async="">
+</script>
 </div> <!-- /content -->
 <footer class="footer">
   <div class="nav-footer">

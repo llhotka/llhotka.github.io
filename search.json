@@ -11,7 +11,7 @@
     "href": "archive.html",
     "title": "Archive",
     "section": "",
-    "text": "Literate Home Assistant Configuration\n\n\n\n\n\nMay 5, 2025\n\n\n\n\n\n\n\nMyBox and Home Assistant\n\n\n\n\n\nOct 29, 2024\n\n\n\n\n\nNo matching items"
+    "text": "Adaptive BEV charging\n\n\n\n\n\nJun 16, 2025\n\n\n\n\n\n\n\nLiterate Home Assistant Configuration\n\n\n\n\n\nMay 5, 2025\n\n\n\n\n\n\n\nMyBox and Home Assistant\n\n\n\n\n\nOct 29, 2024\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "posts/literate-ha-config/index.html",
@@ -130,6 +130,20 @@
     "href": "index.html",
     "title": "Ladislav Lhotka’s Blog",
     "section": "",
-    "text": "Order By\n      Default\n      \n        Title\n      \n      \n        Date - Oldest\n      \n      \n        Date - Newest\n      \n    \n  \n    \n      \n      \n    \n\n\n\n\n\n\n\n\n\n\nLiterate Home Assistant Configuration\n\n\n\nOrg mode\n\nliterate programming\n\nHome Assistant\n\n\n\nLarger instalations of Home Assistant smart-home networks usually lead to a fairly complex configuration that is difficult to develop and maintain. This blog post describes my system of HA YAML code management, documentation and deployment based on Git, Emacs editor with its Org mode, an principles of literate programming.\n\n\n\n\n\nMay 5, 2025\n\n12 min\n\n\n\n\n\n\n\n\n\n\n\nMyBox and Home Assistant\n\n\n\nelectromobility\n\nHome Assistant\n\n\n\nThis post describes how to integrate MyBox wallbox to Home Assistant via MQTT.\n\n\n\n\n\nOct 29, 2024\n\n8 min\n\n\n\n\nNo matching items"
+    "text": "Order By\n      Default\n      \n        Title\n      \n      \n        Date - Oldest\n      \n      \n        Date - Newest\n      \n    \n  \n    \n      \n      \n    \n\n\n\n\n\n\n\n\n\n\nAdaptive BEV charging\n\n\n\nBEV\n\nsolar energy\n\nHome Assistant\n\n\n\nTBD\n\n\n\n\n\nJun 16, 2025\n\n1 min\n\n\n\n\n\n\n\n\n\n\n\nLiterate Home Assistant Configuration\n\n\n\nOrg mode\n\nliterate programming\n\nHome Assistant\n\n\n\nLarger instalations of Home Assistant smart-home networks usually lead to a fairly complex configuration that is difficult to develop and maintain. This blog post describes my system of HA YAML code management, documentation and deployment based on Git, Emacs editor with its Org mode, an principles of literate programming.\n\n\n\n\n\nMay 5, 2025\n\n12 min\n\n\n\n\n\n\n\n\n\n\n\nMyBox and Home Assistant\n\n\n\nelectromobility\n\nHome Assistant\n\n\n\nThis post describes how to integrate MyBox wallbox to Home Assistant via MQTT.\n\n\n\n\n\nOct 29, 2024\n\n8 min\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "posts/adaptive-bev-charging/index.html",
+    "href": "posts/adaptive-bev-charging/index.html",
+    "title": "Adaptive BEV charging",
+    "section": "",
+    "text": "Ruoti et al. (2019) wrote an interesting article about blockchain."
+  },
+  {
+    "objectID": "posts/adaptive-bev-charging/index.html#introduction",
+    "href": "posts/adaptive-bev-charging/index.html#introduction",
+    "title": "Adaptive BEV charging",
+    "section": "",
+    "text": "Ruoti et al. (2019) wrote an interesting article about blockchain."
   }
 ]
