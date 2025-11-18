@@ -234,7 +234,7 @@ mybox_set_max_charge_current:
       data:
         topic: >-
           charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/max-charge-current/set
-        payload_template: "{{ value }}"
+        payload: "{{ value }}"
 ```
 
 And the following script pauses the charging session:
