@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.7.31">
+<meta name="generator" content="quarto-1.8.26">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -35,14 +35,15 @@ ul.task-list li input[type="checkbox"] {
 <script src="site_libs/quarto-listing/quarto-listing.js"></script>
 <script src="site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
 <script src="site_libs/quarto-html/popper.min.js"></script>
 <script src="site_libs/quarto-html/tippy.umd.min.js"></script>
 <script src="site_libs/quarto-html/anchor.min.js"></script>
 <link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="site_libs/quarto-html/quarto-syntax-highlighting-aad47d4606dcadcfee8bfcd2106e8a97.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-2a12e044340f79bad0d75c7561fedc86.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-bd55e5fa0993058969db256aacb56745.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-a8550114c77ff88190113d4ba37f4995.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -114,7 +115,7 @@ const typesetMath = (el) => {
     var macros = [];
     for (var i = 0; i < mathElements.length; i++) {
       var texText = mathElements[i].firstChild;
-      if (mathElements[i].tagName == "SPAN") {
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
         window.katex.render(texText.data, mathElements[i], {
           displayMode: mathElements[i].classList.contains('display'),
           throwOnError: false,
@@ -132,10 +133,10 @@ window.Quarto = {
 
 <link rel="stylesheet" href="styles.css">
 <link rel="alternate" type="application/rss+xml" title="Blog Matrix" href="index.xml" data-external="1"><meta property="og:title" content="Ladislav Lhotka’s Blog – Blog Matrix">
-<meta property="og:image" content="https://blog.lhotka.name/posts/adaptive-bev-charging/home-assistant-svgrepo-com.svg">
+<meta property="og:image" content="https://blog.lhotka.name/posts/literate-ha-config/unicorn-ha-logo.svg">
 <meta property="og:site_name" content="Blog Matrix">
 <meta name="twitter:title" content="Ladislav Lhotka’s Blog – Blog Matrix">
-<meta name="twitter:image" content="https://blog.lhotka.name/posts/adaptive-bev-charging/home-assistant-svgrepo-com.svg">
+<meta name="twitter:image" content="https://blog.lhotka.name/posts/literate-ha-config/unicorn-ha-logo.svg">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -147,7 +148,8 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a href="./index.html" class="navbar-brand navbar-brand-logo">
-    <img src="./images/logo.svg" alt="" class="navbar-logo">
+    <img src="./images/logo.svg" alt="" class="navbar-logo light-content">
+    <img src="./images/logo.svg" alt="" class="navbar-logo dark-content">
     </a>
     <a class="navbar-brand" href="./index.html">
     <span class="navbar-title">Blog Matrix</span>
@@ -190,7 +192,7 @@ window.Quarto = {
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(3)</span></div><div class="category" data-category="QkVW">BEV <span class="quarto-category-count">(1)</span></div><div class="category" data-category="ZWxlY3Ryb21vYmlsaXR5">electromobility <span class="quarto-category-count">(1)</span></div><div class="category" data-category="SG9tZSUyMEFzc2lzdGFudA==">Home Assistant <span class="quarto-category-count">(3)</span></div><div class="category" data-category="bGl0ZXJhdGUlMjBwcm9ncmFtbWluZw==">literate programming <span class="quarto-category-count">(1)</span></div><div class="category" data-category="T3JnJTIwbW9kZQ==">Org mode <span class="quarto-category-count">(1)</span></div><div class="category" data-category="c29sYXIlMjBlbmVyZ3k=">solar energy <span class="quarto-category-count">(1)</span></div></div></div>
+    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(2)</span></div><div class="category" data-category="ZWxlY3Ryb21vYmlsaXR5">electromobility <span class="quarto-category-count">(1)</span></div><div class="category" data-category="SG9tZSUyMEFzc2lzdGFudA==">Home Assistant <span class="quarto-category-count">(2)</span></div><div class="category" data-category="bGl0ZXJhdGUlMjBwcm9ncmFtbWluZw==">literate programming <span class="quarto-category-count">(1)</span></div><div class="category" data-category="T3JnJTIwbW9kZQ==">Org mode <span class="quarto-category-count">(1)</span></div></div></div>
 <!-- main -->
 <main class="content column-page-left" id="quarto-document-content">
 
@@ -241,39 +243,7 @@ window.Quarto = {
     </div>
 </div>
 <div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="QkVWJTJDc29sYXIlMjBlbmVyZ3klMkNIb21lJTIwQXNzaXN0YW50" data-listing-date-sort="1750024800000" data-listing-file-modified-sort="1750060136241" data-listing-date-modified-sort="1750024800000" data-listing-reading-time-sort="1" data-listing-word-count-sort="7">
-<div class="thumbnail"><a href="./posts/adaptive-bev-charging/index.html" class="no-external">
-
-<img loading="lazy" src="./posts/adaptive-bev-charging/home-assistant-svgrepo-com.svg" class="thumbnail-image">
-
-</a></div>
-<div class="body">
-<h3 class="no-anchor listing-title">
-<a href="./posts/adaptive-bev-charging/index.html" class="no-external">Adaptive BEV charging</a>
-</h3>
-<div class="listing-categories">
-
-<div class="listing-category" onclick="window.quartoListingCategory('QkVW'); return false;">BEV</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('c29sYXIlMjBlbmVyZ3k='); return false;">solar energy</div>
-
-<div class="listing-category" onclick="window.quartoListingCategory('SG9tZSUyMEFzc2lzdGFudA=='); return false;">Home Assistant</div>
-
-</div>
-<div class="delink listing-description"><a href="./posts/adaptive-bev-charging/index.html" class="no-external">
-<p>TBD</p>
-</a></div>
-</div>
-<div class="metadata">
-<a href="./posts/adaptive-bev-charging/index.html" class="no-external">
-<div class="listing-date">
-Jun 16, 2025
-</div>
-<div class="listing-reading-time">1 min</div>
-</a>
-</div>
-</div>
-<div class="quarto-post image-right" data-index="1" data-categories="T3JnJTIwbW9kZSUyQ2xpdGVyYXRlJTIwcHJvZ3JhbW1pbmclMkNIb21lJTIwQXNzaXN0YW50" data-listing-date-sort="1746396000000" data-listing-file-modified-sort="1746453963397" data-listing-date-modified-sort="1746396000000" data-listing-reading-time-sort="12" data-listing-word-count-sort="2249">
+<div class="quarto-post image-right" data-index="0" data-categories="T3JnJTIwbW9kZSUyQ2xpdGVyYXRlJTIwcHJvZ3JhbW1pbmclMkNIb21lJTIwQXNzaXN0YW50" data-listing-date-sort="1746396000000" data-listing-file-modified-sort="1746453963397" data-listing-date-modified-sort="1746396000000" data-listing-reading-time-sort="12" data-listing-word-count-sort="2249">
 <div class="thumbnail"><a href="./posts/literate-ha-config/index.html" class="no-external">
 
 <img loading="lazy" src="./posts/literate-ha-config/unicorn-ha-logo.svg" class="thumbnail-image">
@@ -305,7 +275,7 @@ May 5, 2025
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="2" data-categories="ZWxlY3Ryb21vYmlsaXR5JTJDSG9tZSUyMEFzc2lzdGFudA==" data-listing-date-sort="1730156400000" data-listing-file-modified-sort="1746449549930" data-listing-date-modified-sort="1746396000000" data-listing-reading-time-sort="8" data-listing-word-count-sort="1474">
+<div class="quarto-post image-right" data-index="1" data-categories="ZWxlY3Ryb21vYmlsaXR5JTJDSG9tZSUyMEFzc2lzdGFudA==" data-listing-date-sort="1730156400000" data-listing-file-modified-sort="1763456800781" data-listing-date-modified-sort="1746396000000" data-listing-reading-time-sort="8" data-listing-word-count-sort="1474">
 <div class="thumbnail"><a href="./posts/mybox-home-assistant/index.html" class="no-external">
 
 <img loading="lazy" src="./posts/mybox-home-assistant/mybox-ha.png" class="thumbnail-image">
@@ -389,13 +359,14 @@ Oct 29, 2024
       e.clearSelection();
     }
     const getTextToCopy = function(trigger) {
-        const codeEl = trigger.previousElementSibling.cloneNode(true);
-        for (const childEl of codeEl.children) {
-          if (isCodeAnnotation(childEl)) {
-            childEl.remove();
-          }
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
         }
-        return codeEl.innerText;
+      }
+      return codeEl.innerText;
     }
     const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
       text: getTextToCopy
