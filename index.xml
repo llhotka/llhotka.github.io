@@ -10,7 +10,911 @@
 <atom:link href="https://blog.lhotka.name/index.xml" rel="self" type="application/rss+xml"/>
 <description>This is Ladislav Lhotka&#39;s personal blog.</description>
 <generator>quarto-1.8.26</generator>
-<lastBuildDate>Sun, 04 May 2025 22:00:00 GMT</lastBuildDate>
+<lastBuildDate>Wed, 10 Dec 2025 23:00:00 GMT</lastBuildDate>
+<item>
+  <title>Adaptive BEV Charging with Home Assistant</title>
+  <dc:creator>Ladislav Lhotka</dc:creator>
+  <link>https://blog.lhotka.name/posts/adaptive-bev-charging/</link>
+  <description><![CDATA[ 
+
+
+
+
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>What’s the best companion to a photovoltaic station? Why, it is the Sun, of course! But then there are several contenders for the runner-up place, and the battery electric vehicle (BEV) is certainly among them. Depending on the prevailing regime of utilisation, a BEV can be more or less flexible as a heavy consumer of electricity. During the night, most vehicles stay in a garage or a parking lot and might thus be charged from the grid. However, if we want to feed a BEV from a PV station, the vehicle must be attached to a wallbox at home (or at PV-equipped work, for that matter) during the day, which may or may not be possible.</p>
+<p>There are two basic BEV charging modes. First, one often wants to charge a BEV as fast as possible using maximum power provided by the wallbox, be it from the grid, PV station or combination thereof. This is essentially the only option for simpler wallboxes with no dynamic control of the charging power.</p>
+<p>The other charging mode attempts to apply adaptive control of the charging power so as to utilise surplus photovoltaic production for BEV charging and minimise contributions from the grid. This blog post describes how I implemented this charging mode in <a href="https://www.home-assistant.io">Home Assistant</a>. Although the sensors and control elements in this solution are specific to my PV station and wallbox, the algorithm can be easily adapted for other hardware.</p>
+<p>The complete YAML configuration of sensors, automations and dashboard cards, as well as other technical details, can be obtained from <a href="https://github.com/llhotka/literate-ha/tree/main/adaptive-bev-charging">GitHub</a>.</p>
+</section>
+<section id="alternative-solutions" class="level2">
+<h2 class="anchored" data-anchor-id="alternative-solutions">Alternative solutions</h2>
+<p>Other approaches for achieving the same goal, namely charging a BEV primarily from excess PV power, do exist but may require a specific arrangement in the electric installation and/or additional hardware.</p>
+<p>The simplest solution is to use a wallbox that is able to get the necessary data directly from the PV system and adjust the charging power accordingly. In an ideal world, it might work like this across different brands of PV systems and wallboxes via a standard protocol. In practice though, at least for now, only proprietary products are available. One example is Victron Energy’s <a href="https://www.victronenergy.com/media/pg/Energy_Storage_System/en/ess-introduction---features.html">Energy Storage System</a> equipped with their <a href="https://www.victronenergy.com/ev-charging">wallbox.</a></p>
+<p>If a PV system and a wallbox can’t talk directly to each other, one can still add a mediator device that takes care of the necessary communication and control. Examples of commercially available products that provide this functionality are</p>
+<ul>
+<li><a href="https://mybox.eco/en/clanek/dynamicke-rizeni-vykonu-dlm/">DLM module</a> offered by the wallbox manufacturer MyBox</li>
+<li><a href="https://www.solar-station.cz/en/station/">Solar Station</a>.</li>
+</ul>
+<p>For someone like me who already has both the PV system and the wallbox integrated in a home automation platform, it is most natural to implement the mediator function within that platform. The rest of this blog post describes how I did it in Home Assistant.</p>
+<p>For the sake of completeness, I also want to mention a “poor man’s” method that is somewhat limited but should work with essentially any hardware and may sometimes actually be the only option. It requires placing a wallbox (or even a plain electric outlet) <em>between</em> the grid and the PV system. The wallbox is then able to consume excess PV energy that would otherwise be fed into the grid. This method, further explained by <a href="https://youtu.be/VEVqgiDYupU?si=_mswzoySzfs3ehXM">VideoPajaa</a>(in Czech), has two limitations:</p>
+<ol type="1">
+<li>It may be complicated to attach the wallbox to the main grid input cable before the PV inverter.</li>
+<li>If there isn’t enough PV power, the wallbox will pull the rest from the grid, unless we apply additional regulation of wallbox input power.</li>
+</ol>
+</section>
+<section id="wallbox-control-in-home-assistant" class="level2">
+<h2 class="anchored" data-anchor-id="wallbox-control-in-home-assistant">Wallbox control in Home Assistant</h2>
+<p>The goal of my adaptive control algorithm is to regulate the charging power of the wallbox so that it uses most of the surplus PV power available at a given moment but not more – we want to avoid, as much as possible, using energy both from the grid and our home battery. In order to achieve this, several prerequisites have to be met and a few things ought to be taken into account.</p>
+<p>First of all, hardware parameters of the wallbox and the PV system determine the range of charging power in which we can exercise control. The standard <a href="https://en.wikipedia.org/wiki/IEC_61851">IEC 61851-1</a> defines a baseline: the <em>minimum</em> charging current for AC wallboxes is 6&nbsp;A, and the wallbox can signal the <em>maximum</em> available current to the vehicle in 1-A steps up to a limit that is typically 16 or 32&nbsp;A.</p>
+<p>On the other hand, the DC/AC inverter of the PV station is also restricted in terms of the output AC current. In my case (Victron Energy <a href="https://www.victronenergy.com/upload/documents/Datasheet-MultiPlus-II-inverter-charger-EN.pdf">MultiPlus-II 3000 VA</a>) the practical limit is around 10&nbsp;A per phase. Any AC power consumption on a given phase beyond that limit is pulled from the grid.</p>
+<p>And finally, although our PV station has nominally an installed power of 8.2 kWp, the real maximum is around 6.5&nbsp;kW. This limits the current for three-phase charging to 9&nbsp;A.</p>
+<p>All in all, we can regulate the charging current between 6&nbsp;A and 10&nbsp;A for single-phase and 9&nbsp;A for three-phase charging.</p>
+<p>When choosing a wallbox for PV-powered charging, it is important to make sure that it can be configured for operating in the single-phase mode. According to the specs, my stationary wallbox <a href="https://mybox.eco/en/charging-stations/ac-nabijeci-stanice/mybox-plus">MyBox Plus</a> supports both single-phase and three-phase charging but – and this is where I was taken by surprise – it depends only on the type of the on-board charger in the vehicle and cannot be configured. If the car can be charged with three phases, the wallbox delivers power on three phases no matter what. This means that the minimum charging power of this wallbox is 3 × 6&nbsp;A × 230&nbsp;V / 1000 = 4,14&nbsp;kW, which is something that our photovoltaic panels produce only around noon on a rather sunny day. That’s why I had to use another charger that I happened to have, namely the <a href="https://www.nabijelektromobil.cz/prenosny-wallbox-ecovolter-ii-3x16a-11kw-">EcoVolter</a> portable wallbox, where the number of charging phases can be configured.</p>
+<p>When it comes to software and communication capabilities, a <em>conditio sine qua non</em> is, of course, the ability to monitor and dynamically regulate the status and power of the wallbox from Home Assistant. I use the following EcoVolter sensors and services for this:</p>
+<dl>
+<dt><code>sensor_ecovolter_charging_status</code></dt>
+<dd>
+A categorical parameter that gives the current status of the wallbox based on the <a href="https://en.wikipedia.org/wiki/SAE_J1772">SAE J1772</a> standard. The common values are <em>IDLE</em>, <em>CONNECTED</em> and <em>CHARGING</em>.
+</dd>
+<dt><code>sensor_ecovolter_target_current</code></dt>
+<dd>
+The charging current in A.
+</dd>
+<dt><code>binary_sensor.ecovolter_single_phase</code></dt>
+<dd>
+This binary sensor is on for single-phase operation and off otherwise.
+</dd>
+<dt><code>rest_command.set_target_current</code></dt>
+<dd>
+Set the value of the target current.
+</dd>
+<dt><code>rest_command.set_phases</code></dt>
+<dd>
+Enforce single- or three-phase operation.
+</dd>
+<dt><code>rest_command.enable_charging</code></dt>
+<dd>
+Start/resume charging.
+</dd>
+<dt><code>rest_command.disable_charging</code></dt>
+<dd>
+Pause charging.
+</dd>
+</dl>
+<p>Finally, we need some information from the PV station about instantaneous production and other energy flows in the system. I use these sensors:</p>
+<dl>
+<dt><code>sensor.total_grid_power</code></dt>
+<dd>
+Net power balance towards the grid. Positive values mean import from the grid and negative values export to the grid.
+</dd>
+<dt><code>sensor.ess_battery_power</code></dt>
+<dd>
+Power balance towards the home battery. Positive values mean charging and negative values discharging.
+</dd>
+</dl>
+</section>
+<section id="control-variables-and-thresholds" class="level2">
+<h2 class="anchored" data-anchor-id="control-variables-and-thresholds">Control variables and thresholds</h2>
+<p>Next we have to define one or more control variables and corresponding thresholds for triggering changes in the charging power. There are a few options including</p>
+<ul>
+<li>state of charge of the home battery</li>
+<li>photovoltaic power</li>
+<li>surplus power, i.e.&nbsp;the difference between the PV power and consumption.</li>
+</ul>
+<p>For my purposes, considering especially the variability of our household power consumption, I eventually chose the latter parameter. The surplus power can be implemented in Home Assistant as the following template sensor with entity ID <code>sensor.pv_surplus_power</code>:</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>templates.yaml</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1" data-filename="templates.yaml" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb1-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">name</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"PV surplus power"</span></span>
+<span id="cb1-2"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">unique_id</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"daa86894-3d82-4347-9401-d3ec32523fcd"</span></span>
+<span id="cb1-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">  state</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">: </span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">&gt;-</span></span>
+<span id="cb1-4">    {{ states('sensor.ess_battery_power') | int -</span>
+<span id="cb1-5">      states('sensor.total_grid_power') | int }}</span>
+<span id="cb1-6"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">unit_of_measurement</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"W"</span></span>
+<span id="cb1-7"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">device_class</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> power</span></span>
+<span id="cb1-8"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">state_class</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> measurement</span></span></code></pre></div></div>
+</div>
+<p>Its value is determined by subtracting the total grid power balance <code>sensor.total_grid_power</code>, where import is positive and export negative, from the power that is being sent to the home battery (<code>sensor.ess_battery_power</code>).</p>
+<p>Now, it would be impractical to use the instantaneous value of the PV surplus power directly as the control variable because of its excessive sensitivity – it would cause reactions to momentary windows of solar radiation during an otherwise gloomy day or, conversely, to short-term increases in household consumption. What we need instead is a value averaged over a certain time interval.</p>
+<p>The mean value of a continuous time-dependent variable <img src="https://latex.codecogs.com/png.latex?x(t)"> over an interval between 0 and T is defined as the following integral:</p>
+<p><img src="https://latex.codecogs.com/png.latex?%20%7B1%5Cover%20T%7D%20%5Cint_%7B0%7D%5ET%20x(t)dt%20"></p>
+<p>We can create an <a href="https://www.home-assistant.io/integrations/integration">Integral</a> helper sensor, named in my case <code>sensor.accumulated_pv_surplus_power</code>, that approximates the integral of the PV surplus power sensor. In the GUI configuration of this helper I chose:</p>
+<ul>
+<li>Metric prefix: <em>k (kilo)</em></li>
+<li>Time unit: <em>Minutes</em></li>
+<li>Input sensor: <em>sensor.pv_surplus_power</em></li>
+<li>Integration method: <em>Trapezoidal rule</em></li>
+</ul>
+<p>This configuration means that the units of the new integral sensor are kilowatt-minutes (kWmin).</p>
+<p>But that’s not all – we also need to integrate only over a certain (relatively short) period of time in order to be able to react to changing circumstances in a timely manner. To this end, we created another type of helper sensor, namely the <a href="https://www.home-assistant.io/integrations/utility_meter">Utility Meter</a>. Its entity ID is <code>sensor.quarter_hourly_delta_of_surplus_pv_energy</code> and the configuration parameters were set in the Home Assistant GUI as follows:</p>
+<ul>
+<li>Input sensor: <em>sensor.accumulated_pv_surplus_power</em></li>
+<li>Meter reset cycle: <em>Every 15 minutes</em></li>
+<li>Meter reset offset: <em>0</em></li>
+</ul>
+<p>This sensor resets to zero every 15 minutes, so its value gives the PV surplus power integral accumulated within the current quarter of an hour. In order to obtain an approximation to the 15-minute mean value according to the above formula, we should divide the value of the utility meter by 15 minutes. This is however unnecessary, we can instead adjust the thresholds described next. For brevity, I will denote the value of this utility meter sensor as <em>SSS</em> (smoothed surplus sensor) and call it the “delta sensor”. Its unit is again kWmin.</p>
+<p>The minimum charging current supported by the EcoVolter wallbox is 6&nbsp;A (single phase), which means a power of 6&nbsp;A ✕ 230&nbsp;V / 1000 = 1.38&nbsp;kW. Hence, if the wallbox is connected but idle, we want to start (or resume) charging whenever <em>SSS</em> reaches a value of 1.38&nbsp;kW ✕ 15&nbsp;min = 20.7&nbsp;kWmin.</p>
+<p>Similarly, an increase of the charging current by 1&nbsp;A (still single phase) corresponds to a <em>SSS</em> value of 1&nbsp;A ✕ 230&nbsp;V ✕ 15&nbsp;min / 1000 = 3.45&nbsp;kWmin.</p>
+<p>This way we can increase the charging current up to 10&nbsp;A where we hit the limit of the DC/AC inverter. In order to use high PV power generated during a sunny day, we need to switch to three-phase charging. The transition from 10&nbsp;A single phase to 6&nbsp;A three phase means a difference in charging power of (3 ✕ 6&nbsp;A - 10&nbsp;A) ✕ 230&nbsp;V / 1000 = 1.84&nbsp;kW, or <em>SSS</em> value of 27.6&nbsp;kWmin.</p>
+<p>Finally, a difference of 1&nbsp;A during three phase charging corresponds to a difference of 3 ✕ 3.45&nbsp;kWmin = 10.35&nbsp;kWmin.</p>
+<p>In principle, we could determine the charging power warranted by the current value of the delta sensor and directly set wallbox parameters to the corresponding values. In practice, though, it is perfectly sufficient to increase or decrease the charging current gradually in 1&nbsp;A steps. On the other hand, if we reach an <em>SSS</em> value threshold, we needn’t wait till the next quarter of an hour and can adjust the wallbox parameters right away.</p>
+<p>Putting together the above considerations (and rounding the numeric results reasonably), we get control rules that are summarised in the following table:</p>
+<div id="tbl-rules" class="striped quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-tbl figure">
+<figcaption class="quarto-float-caption-top quarto-float-caption quarto-float-tbl" id="tbl-rules-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Table&nbsp;1: Wallbox control rules
+</figcaption>
+<div aria-describedby="tbl-rules-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<table class="table-striped caption-top table">
+<colgroup>
+<col style="width: 4%">
+<col style="width: 19%">
+<col style="width: 11%">
+<col style="width: 22%">
+<col style="width: 42%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th style="text-align: right;">current [A]</th>
+<th style="text-align: right;">phases</th>
+<th style="text-align: right;"><em>SSS</em> [kWmin]</th>
+<th>action</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;"></td>
+<td style="text-align: right;">21</td>
+<td>resume at 6&nbsp;A single phase</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td style="text-align: right;">6–9</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3.5</td>
+<td>increase current by 1&nbsp;A</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td style="text-align: right;">7–10</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-3.5</td>
+<td>decrease current by 1&nbsp;A</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">-3.5</td>
+<td>pause charging</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">28</td>
+<td>switch to 6&nbsp;A three phases</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td style="text-align: right;">6–8</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">10.5</td>
+<td>increase current by 1&nbsp;A</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td style="text-align: right;">7–9</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">-10.5</td>
+<td>decrease current by 1&nbsp;A</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td style="text-align: right;">6</td>
+<td style="text-align: right;">3</td>
+<td style="text-align: right;">-10.5</td>
+<td>switch to 10&nbsp;A single phase</td>
+</tr>
+</tbody>
+</table>
+</div>
+</figure>
+</div>
+</section>
+<section id="automations" class="level2">
+<h2 class="anchored" data-anchor-id="automations">Automations</h2>
+<p>It is now pretty straightforward to translate the control rules from Table&nbsp;1 to Home Assistant automations. For instance, the following automation realises rule #1:</p>
+<div class="code-with-filename">
+<div class="code-with-filename-file">
+<pre><strong>automations.yaml</strong></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2" data-filename="automations.yaml" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb2-1"><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">id</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"eb1e0025-22f7-4fb4-b15e-e0c39450dcde"</span></span>
+<span id="cb2-2"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">alias</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"Resume BEV charging"</span></span>
+<span id="cb2-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">  description</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">: </span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">&gt;-</span></span>
+<span id="cb2-4">    Start/resume BEV charging if there is sufficient PV production</span>
+<span id="cb2-5">    surplus and the cable is connected.</span>
+<span id="cb2-6"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">triggers</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb2-7"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">trigger</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> numeric_state</span></span>
+<span id="cb2-8"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">entity_id</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb2-9"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">        </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> sensor.quarter_hourly_delta_of_surplus_pv_energy</span></span>
+<span id="cb2-10"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">above</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">21</span></span>
+<span id="cb2-11"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">conditions</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb2-12"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">condition</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> state</span></span>
+<span id="cb2-13"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">entity_id</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> device_tracker.ecovolter</span></span>
+<span id="cb2-14"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">state</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> home</span></span>
+<span id="cb2-15"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">condition</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> state</span></span>
+<span id="cb2-16"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">entity_id</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> sensor.ecovolter_charging_status</span></span>
+<span id="cb2-17"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">state</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> CONNECTED</span></span>
+<span id="cb2-18"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">actions</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb2-19"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">action</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> rest_command.set_phases</span></span>
+<span id="cb2-20"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">data</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb2-21"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">        </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">single</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"true"</span></span>
+<span id="cb2-22"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">action</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> rest_command.set_target_current</span></span>
+<span id="cb2-23"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">data</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb2-24"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">        </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">value</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span></span>
+<span id="cb2-25"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">action</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> rest_command.enable_charging</span></span>
+<span id="cb2-26"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">action</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> utility_meter.reset</span></span>
+<span id="cb2-27"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">      </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">target</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb2-28"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">        </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">entity_id</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> sensor.quarter_hourly_delta_of_surplus_pv_energy</span></span>
+<span id="cb2-29"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">mode</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> single</span></span></code></pre></div></div>
+</div>
+<p>A few details in this automation are worth mentioning:</p>
+<ul>
+<li>After the charging is started, we reset the delta sensor so that it starts from scratch in the new situation. This happens after all changes of wallbox parameters as well as pausing/resuming the wallbox.</li>
+<li>EcoVolter’s device tracker is used to check that it is at home. I sometimes take the EcoVolter cable with me when travelling and it makes no sense to apply the control logic if it is used elsewhere.</li>
+</ul>
+<p>YAML code for all the automations can be downloaded from <a href="https://github.com/llhotka/literate-ha/tree/main/adaptive-bev-charging">GitHub</a>.</p>
+</section>
+<section id="dashboard-cards" class="level2">
+<h2 class="anchored" data-anchor-id="dashboard-cards">Dashboard cards</h2>
+<p>I am always delighted to watch how things work as expected, especially those that I designed myself. That’s why I also created dashboard cards that show the value of the delta sensor together with the state of the adaptive control algorithm.</p>
+<p>I use the <a href="https://www.home-assistant.io/dashboards/gauge">Gauge card</a> card for this purpose showing not only the value of the <em>SSS</em> but also the currently active lower and upper threshold that would trigger a control action according to Table&nbsp;1. For single-phase charging and current less than 10&nbsp;A, the card looks like in Figure&nbsp;1 (a).</p>
+<p>Another dashboard card that turned out to be very useful in this context is the <a href="https://github.com/flixlix/power-flow-card-plus">Power Flow Card Plus</a>, see Figure&nbsp;1 (b).</p>
+<div id="fig-lovelace-cards" class="quarto-layout-panel">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-lovelace-cards-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="quarto-layout-row">
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-lovelace-cards" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-gauge-card" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-gauge-card-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://blog.lhotka.name/posts/adaptive-bev-charging/gauge-card.png" class="img-fluid figure-img" data-ref-parent="fig-lovelace-cards">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-gauge-card-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) Gauge card for single-phase &lt; 10&nbsp;A
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="quarto-layout-cell-subref quarto-layout-cell" data-ref-parent="fig-lovelace-cards" style="flex-basis: 50.0%;justify-content: flex-start;">
+<div id="fig-flow-card" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-flow-card-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="https://blog.lhotka.name/posts/adaptive-bev-charging/power-flow-card.png" class="img-fluid figure-img" data-ref-parent="fig-lovelace-cards">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-flow-card-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b) Power Flow Card Plus
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-lovelace-cards-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;1: Lovelace dashboard cards
+</figcaption>
+</figure>
+</div>
+<p>In the configuration of a gauge card, the extents of red, yellow and green severity intervals, i.e.&nbsp;the thresholds for decreasing and increasing the charging power, have to be specified as a static number. We can make it dynamic by creating multiple instances of the card (four in this case) for each configuration of <em>SSS</em> threshold, and also use visibility conditions to make sure that one and only one instance is displayed at any time. For example, when single-phase charging with less than 10&nbsp;A is on, the following gauge card instance is displayed:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3" style="background: #f1f3f5;"><pre class="sourceCode yaml code-with-copy"><code class="sourceCode yaml"><span id="cb3-1"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">type</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> gauge</span></span>
+<span id="cb3-2"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">entity</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> sensor.quarter_hourly_delta_of_surplus_pv_energy</span></span>
+<span id="cb3-3"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">name</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> 15’ bilance</span></span>
+<span id="cb3-4"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">unit</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> kWmin</span></span>
+<span id="cb3-5"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">min</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">-30</span></span>
+<span id="cb3-6"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">max</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">30</span></span>
+<span id="cb3-7"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">needle</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="ch" style="color: #20794D;
+background-color: null;
+font-style: inherit;">true</span></span>
+<span id="cb3-8"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">grid_options</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb3-9"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">columns</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">6</span></span>
+<span id="cb3-10"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">rows</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">2</span></span>
+<span id="cb3-11"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">severity</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb3-12"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">green</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">3.5</span></span>
+<span id="cb3-13"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">yellow</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fl" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">-3.5</span></span>
+<span id="cb3-14"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">red</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">-30</span></span>
+<span id="cb3-15"><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">visibility</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span></span>
+<span id="cb3-16"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">condition</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> state</span></span>
+<span id="cb3-17"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">entity</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> sensor.ecovolter_charging_status</span></span>
+<span id="cb3-18"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">state</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> CHARGING</span></span>
+<span id="cb3-19"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">condition</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> state</span></span>
+<span id="cb3-20"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">entity</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> binary_sensor.ecovolter_single_phase</span></span>
+<span id="cb3-21"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">state</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="st" style="color: #20794D;
+background-color: null;
+font-style: inherit;">"on"</span></span>
+<span id="cb3-22"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">  </span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">-</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">condition</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> numeric_state</span></span>
+<span id="cb3-23"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">entity</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> sensor.ecovolter_target_current</span></span>
+<span id="cb3-24"><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;">    </span><span class="fu" style="color: #4758AB;
+background-color: null;
+font-style: inherit;">below</span><span class="kw" style="color: #003B4F;
+background-color: null;
+font-weight: bold;
+font-style: inherit;">:</span><span class="at" style="color: #657422;
+background-color: null;
+font-style: inherit;"> </span><span class="dv" style="color: #AD0000;
+background-color: null;
+font-style: inherit;">10</span></span></code></pre></div></div>
+</section>
+<section id="practical-experiences" class="level2">
+<h2 class="anchored" data-anchor-id="practical-experiences">Practical experiences</h2>
+<p>I have been using the adaptive charging algorithm for more than two years and the experience so far has been very positive. The system is able to pause/resume charging and regulate the power and the number of phases according to changing conditions. It also has sufficient inertia and hysteresis so that it doesn’t immediately react to transient fluctuations in PV production and household power consumption. Such momentary peaks are usually nicely absorbed by the home battery.</p>
+<p>On the other hand, if the PV production surplus (or, conversely, the deficit) is really large, the parameters converge to an equilibrium quite quickly because they are adjusted as soon as the delta sensor reaches the threshold so that several parameter updates are possible within a single quarter of an hour.</p>
+<p>It is also good to know that the transitions between single-phase to three-phase charging and back require the charging session to be completely stopped and then resumed. This is necessary because the wallbox has to re-negotiate a new charging profile which can’t be done on the fly.</p>
+<p>One situation where the algorithm fails to fully utilise (potential) PV production is when the home battery is almost full and excess production can’t be fed into the grid. In this case the PV production is artificially throttled, which has impact on the delta sensor – it’s value is lower than it could be. This usually happens if I start charging in the afternoon when the home battery is already full, but such a situation can also develop during a charging session.</p>
+<p>There doesn’t seem to be any way (at least with Victron devices) for estimating the would-be PV power if it weren’t for the throttling, so I had to resort to trial and error: I have an automation that starts intensive charging (three phases at 7&nbsp;A) whenever the state of charge of the home battery is over 90%. If this charging power is too high, the adaptive regulation will intervene and push the parameters back to an equilibrium at the expense of some energy from the home battery.</p>
+
+
+</section>
+
+ ]]></description>
+  <category>electromobility</category>
+  <category>photovoltaics</category>
+  <category>Home Assistant</category>
+  <guid>https://blog.lhotka.name/posts/adaptive-bev-charging/</guid>
+  <pubDate>Wed, 10 Dec 2025 23:00:00 GMT</pubDate>
+  <media:content url="https://blog.lhotka.name/posts/adaptive-bev-charging/ecovolter.png" medium="image" type="image/png" height="62" width="144"/>
+</item>
 <item>
   <title>Literate Home Assistant Configuration</title>
   <dc:creator>Ladislav Lhotka</dc:creator>
@@ -685,7 +1589,7 @@ Figure&nbsp;1: MyBox Plus wallbox and mobile application
 </figure>
 </div>
 <p>On the other hand, since the wallbox was going to be installed in a locked garage, we didn’t need the optional RFID card reader. For the same reason I chose the tethered variant (with a fixed Type&nbsp;2 cable), as it is much more convenient to simply take the cable off the holder and plug it into the car.</p>
-<p>Finally, I didn’t order the <a href="https://mybox.eco/produkt/mybox-ac-sensor-modul-dynamickeho-rizeni-vykonu-nabijeci-stanice">AC Sensor</a> that can be used for adjusting wallbox charging power dynamically according to the current consumption of the household. My plan has been to implement such a control mechanism in Home Assistant, if it’s necessary at all.</p>
+<p>Finally, I didn’t order the <a href="https://mybox.eco/produkt/mybox-ac-sensor-modul-dynamickeho-rizeni-vykonu-nabijeci-stanice">AC Sensor</a> that can be used for adjusting wallbox charging power dynamically according to the current consumption of the household. I implemented such a control mechanism in Home Assistant, see my other blog post <a href="https://blog.lhotka.name/posts/adaptive-bev-charging">Adaptive BEV Charging with Home Assistant</a>.</p>
 </section>
 <section id="preliminaries" class="level2">
 <h2 class="anchored" data-anchor-id="preliminaries">Preliminaries</h2>
@@ -1285,7 +2189,7 @@ background-color: null;
 font-style: inherit;">&gt;-</span></span>
 <span id="cb6-10">          charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/pause-charging/set</span></code></pre></div></div>
 </div>
-<p>Complete contents of configuration files that I currently use for MyBox can be downloaded from <a href="https://github.com/llhotka/mybox-ha-mqtt">GitHub</a>.</p>
+<p>Complete contents of configuration files that I currently use for MyBox as well as other technical details can be obtained from <a href="https://github.com/llhotka/literate-ha/tree/main/mybox-ha-mqtt">GitHub</a>.</p>
 </section>
 <section id="conclusions" class="level2">
 <h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>

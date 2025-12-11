@@ -159,7 +159,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://twitter.com/LadislavLhotka"> <i class="bi bi-twitter-x" role="img">
+    <a class="nav-link" href="https://bsky.app/profile/lhotka.name"> <i class="bi bi-bluesky" role="img">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -213,7 +213,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Modified</div>
     <div class="quarto-title-meta-contents">
-      <p class="date-modified">May 5, 2025</p>
+      <p class="date-modified">December 10, 2025</p>
     </div>
   </div>
     
@@ -266,7 +266,7 @@ Figure&nbsp;1: MyBox Plus wallbox and mobile application
 </figure>
 </div>
 <p>On the other hand, since the wallbox was going to be installed in a locked garage, we didn’t need the optional RFID card reader. For the same reason I chose the tethered variant (with a fixed Type&nbsp;2 cable), as it is much more convenient to simply take the cable off the holder and plug it into the car.</p>
-<p>Finally, I didn’t order the <a href="https://mybox.eco/produkt/mybox-ac-sensor-modul-dynamickeho-rizeni-vykonu-nabijeci-stanice">AC Sensor</a> that can be used for adjusting wallbox charging power dynamically according to the current consumption of the household. My plan has been to implement such a control mechanism in Home Assistant, if it’s necessary at all.</p>
+<p>Finally, I didn’t order the <a href="https://mybox.eco/produkt/mybox-ac-sensor-modul-dynamickeho-rizeni-vykonu-nabijeci-stanice">AC Sensor</a> that can be used for adjusting wallbox charging power dynamically according to the current consumption of the household. I implemented such a control mechanism in Home Assistant, see my other blog post <a href="https://blog.lhotka.name/posts/adaptive-bev-charging">Adaptive BEV Charging with Home Assistant</a>.</p>
 </section>
 <section id="preliminaries" class="level2">
 <h2 class="anchored" data-anchor-id="preliminaries">Preliminaries</h2>
@@ -478,7 +478,7 @@ Figure&nbsp;4: Topics in MQTT Explorer
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">        topic</span><span class="kw">: </span><span class="ch">&gt;-</span></span>
 <span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>          charger/e5qb-ekgg-48wz-o07w/ac-module-1-ac-module/pause-charging/set</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-<p>Complete contents of configuration files that I currently use for MyBox can be downloaded from <a href="https://github.com/llhotka/mybox-ha-mqtt">GitHub</a>.</p>
+<p>Complete contents of configuration files that I currently use for MyBox as well as other technical details can be obtained from <a href="https://github.com/llhotka/literate-ha/tree/main/mybox-ha-mqtt">GitHub</a>.</p>
 </section>
 <section id="conclusions" class="level2">
 <h2 class="anchored" data-anchor-id="conclusions">Conclusions</h2>

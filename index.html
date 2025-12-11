@@ -133,10 +133,14 @@ window.Quarto = {
 
 <link rel="stylesheet" href="styles.css">
 <link rel="alternate" type="application/rss+xml" title="Blog Matrix" href="index.xml" data-external="1"><meta property="og:title" content="Ladislav Lhotka’s Blog – Blog Matrix">
-<meta property="og:image" content="https://blog.lhotka.name/posts/literate-ha-config/unicorn-ha-logo.svg">
+<meta property="og:image" content="https://blog.lhotka.name/posts/adaptive-bev-charging/ecovolter.png">
 <meta property="og:site_name" content="Blog Matrix">
+<meta property="og:image:height" content="165">
+<meta property="og:image:width" content="381">
 <meta name="twitter:title" content="Ladislav Lhotka’s Blog – Blog Matrix">
-<meta name="twitter:image" content="https://blog.lhotka.name/posts/literate-ha-config/unicorn-ha-logo.svg">
+<meta name="twitter:image" content="https://blog.lhotka.name/posts/adaptive-bev-charging/ecovolter.png">
+<meta name="twitter:image-height" content="165">
+<meta name="twitter:image-width" content="381">
 <meta name="twitter:card" content="summary_large_image">
 </head>
 
@@ -175,7 +179,7 @@ window.Quarto = {
 <span class="menu-text"></span></a>
   </li>  
   <li class="nav-item compact">
-    <a class="nav-link" href="https://twitter.com/LadislavLhotka"> <i class="bi bi-twitter-x" role="img">
+    <a class="nav-link" href="https://bsky.app/profile/lhotka.name"> <i class="bi bi-bluesky" role="img">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
@@ -192,7 +196,7 @@ window.Quarto = {
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         
-    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(2)</span></div><div class="category" data-category="ZWxlY3Ryb21vYmlsaXR5">electromobility <span class="quarto-category-count">(1)</span></div><div class="category" data-category="SG9tZSUyMEFzc2lzdGFudA==">Home Assistant <span class="quarto-category-count">(2)</span></div><div class="category" data-category="bGl0ZXJhdGUlMjBwcm9ncmFtbWluZw==">literate programming <span class="quarto-category-count">(1)</span></div><div class="category" data-category="T3JnJTIwbW9kZQ==">Org mode <span class="quarto-category-count">(1)</span></div></div></div>
+    <h5 class="quarto-listing-category-title">Categories</h5><div class="quarto-listing-category category-default"><div class="category" data-category="">All <span class="quarto-category-count">(3)</span></div><div class="category" data-category="ZWxlY3Ryb21vYmlsaXR5">electromobility <span class="quarto-category-count">(2)</span></div><div class="category" data-category="SG9tZSUyMEFzc2lzdGFudA==">Home Assistant <span class="quarto-category-count">(3)</span></div><div class="category" data-category="bGl0ZXJhdGUlMjBwcm9ncmFtbWluZw==">literate programming <span class="quarto-category-count">(1)</span></div><div class="category" data-category="T3JnJTIwbW9kZQ==">Org mode <span class="quarto-category-count">(1)</span></div><div class="category" data-category="cGhvdG92b2x0YWljcw==">photovoltaics <span class="quarto-category-count">(1)</span></div></div></div>
 <!-- main -->
 <main class="content column-page-left" id="quarto-document-content">
 
@@ -243,7 +247,39 @@ window.Quarto = {
     </div>
 </div>
 <div class="list quarto-listing-default">
-<div class="quarto-post image-right" data-index="0" data-categories="T3JnJTIwbW9kZSUyQ2xpdGVyYXRlJTIwcHJvZ3JhbW1pbmclMkNIb21lJTIwQXNzaXN0YW50" data-listing-date-sort="1746396000000" data-listing-file-modified-sort="1746453963397" data-listing-date-modified-sort="1746396000000" data-listing-reading-time-sort="12" data-listing-word-count-sort="2249">
+<div class="quarto-post image-right" data-index="0" data-categories="ZWxlY3Ryb21vYmlsaXR5JTJDcGhvdG92b2x0YWljcyUyQ0hvbWUlMjBBc3Npc3RhbnQ=" data-listing-date-sort="1765407600000" data-listing-file-modified-sort="1765457599621" data-listing-date-modified-sort="1765407600000" data-listing-reading-time-sort="15" data-listing-word-count-sort="2972">
+<div class="thumbnail"><a href="./posts/adaptive-bev-charging/index.html" class="no-external">
+
+<img loading="lazy" src="./posts/adaptive-bev-charging/ecovolter.png" class="thumbnail-image">
+
+</a></div>
+<div class="body">
+<h3 class="no-anchor listing-title">
+<a href="./posts/adaptive-bev-charging/index.html" class="no-external">Adaptive BEV Charging with Home Assistant</a>
+</h3>
+<div class="listing-categories">
+
+<div class="listing-category" onclick="window.quartoListingCategory('ZWxlY3Ryb21vYmlsaXR5'); return false;">electromobility</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('cGhvdG92b2x0YWljcw=='); return false;">photovoltaics</div>
+
+<div class="listing-category" onclick="window.quartoListingCategory('SG9tZSUyMEFzc2lzdGFudA=='); return false;">Home Assistant</div>
+
+</div>
+<div class="delink listing-description"><a href="./posts/adaptive-bev-charging/index.html" class="no-external">
+<p>This post describes a Home Assistant implementation of adaptive control for a smart BEV charger (wallbox) that aims at utilising primarily surplus power generated by a photovoltaic station.</p>
+</a></div>
+</div>
+<div class="metadata">
+<a href="./posts/adaptive-bev-charging/index.html" class="no-external">
+<div class="listing-date">
+Dec 11, 2025
+</div>
+<div class="listing-reading-time">15 min</div>
+</a>
+</div>
+</div>
+<div class="quarto-post image-right" data-index="1" data-categories="T3JnJTIwbW9kZSUyQ2xpdGVyYXRlJTIwcHJvZ3JhbW1pbmclMkNIb21lJTIwQXNzaXN0YW50" data-listing-date-sort="1746396000000" data-listing-file-modified-sort="1746453963397" data-listing-date-modified-sort="1746396000000" data-listing-reading-time-sort="12" data-listing-word-count-sort="2249">
 <div class="thumbnail"><a href="./posts/literate-ha-config/index.html" class="no-external">
 
 <img loading="lazy" src="./posts/literate-ha-config/unicorn-ha-logo.svg" class="thumbnail-image">
@@ -275,7 +311,7 @@ May 5, 2025
 </a>
 </div>
 </div>
-<div class="quarto-post image-right" data-index="1" data-categories="ZWxlY3Ryb21vYmlsaXR5JTJDSG9tZSUyMEFzc2lzdGFudA==" data-listing-date-sort="1730156400000" data-listing-file-modified-sort="1763456800781" data-listing-date-modified-sort="1746396000000" data-listing-reading-time-sort="8" data-listing-word-count-sort="1474">
+<div class="quarto-post image-right" data-index="2" data-categories="ZWxlY3Ryb21vYmlsaXR5JTJDSG9tZSUyMEFzc2lzdGFudA==" data-listing-date-sort="1730156400000" data-listing-file-modified-sort="1765386938379" data-listing-date-modified-sort="1765321200000" data-listing-reading-time-sort="8" data-listing-word-count-sort="1482">
 <div class="thumbnail"><a href="./posts/mybox-home-assistant/index.html" class="no-external">
 
 <img loading="lazy" src="./posts/mybox-home-assistant/mybox-ha.png" class="thumbnail-image">

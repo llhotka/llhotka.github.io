@@ -2,6 +2,7 @@
   {
     "listing": "/archive.html",
     "items": [
+      "/posts/adaptive-bev-charging/index.html",
       "/posts/literate-ha-config/index.html",
       "/posts/mybox-home-assistant/index.html"
     ]
@@ -9,6 +10,7 @@
   {
     "listing": "/index.html",
     "items": [
+      "/posts/adaptive-bev-charging/index.html",
       "/posts/literate-ha-config/index.html",
       "/posts/mybox-home-assistant/index.html"
     ]
